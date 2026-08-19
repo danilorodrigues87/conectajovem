@@ -10,7 +10,7 @@
 
 deployment:
   tasks:
-    - export DEPLOYPATH=/home1/dncurs82/conectjovem.com.br
+    - export DEPLOYPATH=/home1/dncurs82/conectajovem.com.br
     - /bin/mkdir -p $DEPLOYPATH
     - /bin/rm -rf $DEPLOYPATH/assets
     - /bin/cp -R dist/. $DEPLOYPATH/

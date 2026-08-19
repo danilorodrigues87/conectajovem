@@ -4,7 +4,7 @@
 export const site = {
   name: 'Conecta Jovem',
   tagline: 'Seu talento conectado às melhores oportunidades',
-  domain: 'conectjovem.com.br',
+  domain: 'conectajovem.com.br',
   description:
     'Plataforma de empregabilidade que conecta jovens talentos a empresas parceiras. Vagas de aprendizagem, estágio, CLT e freelance.',
   hero: {

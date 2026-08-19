@@ -5,8 +5,8 @@
 1. Confirme a pasta do domínio no cPanel e ajuste `DEPLOYPATH` em `.cpanel.yml`
 2. No painel (servidor): rode `conect_jovem.sql` e configure no `.env`:
    ```env
-   CONECT_URL=https://conectjovem.com.br
-   CONECT_CORS_ORIGINS=https://conectjovem.com.br,https://www.conectjovem.com.br
+   CONECT_URL=https://conectajovem.com.br
+   CONECT_CORS_ORIGINS=https://conectajovem.com.br,https://www.conectajovem.com.br
    ```
 3. cPanel → Git Version Control → clone `conectajovem`
 4. No PC:
@@ -34,6 +34,6 @@ git push
 
 ## Testes
 
-- https://conectjovem.com.br/
-- https://conectjovem.com.br/vagas
+- https://conectajovem.com.br/
+- https://conectajovem.com.br/vagas
 - https://admin.ctieducacional.com.br/app/api/v1/conect/public/branding
