@@ -1,0 +1,19 @@
+---
+# Deploy Git do cPanel → pasta pública do Conecta Jovem
+#
+# ANTES do push/deploy:
+#   1. .env.production com VITE_API_BASE_URL (URL absoluta da API)
+#   2. npm run build  (gera dist/)
+#   3. git add dist && commit && push
+#
+# Ajuste DEPLOYPATH se a pasta do domínio for outra no seu cPanel.
+
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home1/dncurs82/conectjovem.com.br
+    - /bin/mkdir -p $DEPLOYPATH
+    - /bin/rm -rf $DEPLOYPATH/assets
+    - /bin/cp -R dist/. $DEPLOYPATH/
+    - /bin/chmod 644 $DEPLOYPATH/index.html $DEPLOYPATH/.htaccess 2>/dev/null || true
+    - /bin/find $DEPLOYPATH/assets -type f -exec chmod 644 {} \; 2>/dev/null || true
+    - /bin/find $DEPLOYPATH/assets -type d -exec chmod 755 {} \; 2>/dev/null || true

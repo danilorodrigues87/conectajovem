@@ -34,8 +34,14 @@ Execute no phpMyAdmin: `painel-cti/database/conect_jovem.sql`
 
 Módulo escola: `/painel/conect`
 
-## Produção
+## Produção (cPanel Git — igual portal do aluno)
 
-- Build: `npm run build` → pasta `dist/`
+1. Ajuste `DEPLOYPATH` em `.cpanel.yml` se necessário
+2. `npm run build` (usa `.env.production`)
+3. Commit da pasta `dist/` + push
+4. cPanel → Git Version Control → **Deploy HEAD Commit**
+
+Detalhes: `DEPLOY.md`
+
 - Domínio: `conectjovem.com.br`
 - API: `https://admin.ctieducacional.com.br/app/api/v1`

@@ -1,7 +1,8 @@
 node_modules
-dist
+# dist versionado para deploy Git/cPanel (igual portal do aluno)
 .env
 .env.local
 .env.*.local
+!.env.production
 .DS_Store
 *.log
