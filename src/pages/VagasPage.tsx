@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { VagaCard } from '../components/VagaCard';
 import { api, type Cidade, type Empresa, type Vaga } from '../lib/api';

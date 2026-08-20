@@ -1,0 +1,15 @@
+# SPA fallback — HostGator / Apache (rotas React → index.html)
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+Options -Indexes
+DirectoryIndex index.html
