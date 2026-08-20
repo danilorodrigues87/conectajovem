@@ -1,12 +1,13 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { CurriculoPreview } from '../components/CurriculoPreview';
 import { Layout } from '../components/Layout';
+import { LocationSelect } from '../components/LocationSelect';
 import {
   api,
   clearSession,
   type CandidatoPerfil,
   type Candidatura,
-  type Cidade,
   type Notificacao,
   type UserCandidato,
 } from '../lib/api';
@@ -49,9 +50,10 @@ export function CandidatoDashboardPage() {
   const [perfil, setPerfil] = useState<CandidatoPerfil | null>(null);
   const [candidaturas, setCandidaturas] = useState<Candidatura[]>([]);
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
-  const [cidades, setCidades] = useState<Cidade[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [fotoSaving, setFotoSaving] = useState(false);
+  const [showCurriculo, setShowCurriculo] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [habInput, setHabInput] = useState('');
@@ -59,12 +61,20 @@ export function CandidatoDashboardPage() {
     nome: '',
     whatsapp: '',
     resumo: '',
+    estadoId: '',
     cidadeId: '',
     bairro: '',
     uf: '',
     disponibilidade: 'imediata',
     habilidades: [] as string[],
   });
+
+  const onLocationChange = useCallback(
+    (next: { estadoId: string; cidadeId: string; uf: string }) => {
+      setForm((f) => ({ ...f, ...next }));
+    },
+    [],
+  );
 
   function loadPerfil() {
     return api.meCandidato().then((r) => {
@@ -74,6 +84,7 @@ export function CandidatoDashboardPage() {
         nome: r.candidato.nome || '',
         whatsapp: r.candidato.whatsapp || '',
         resumo: r.candidato.resumo || '',
+        estadoId: '',
         cidadeId: r.candidato.cidadeId ? String(r.candidato.cidadeId) : '',
         bairro: r.candidato.bairro || '',
         uf: r.candidato.uf || '',
@@ -97,8 +108,22 @@ export function CandidatoDashboardPage() {
     Promise.all([loadPerfil(), loadCandidaturas(), loadNotificacoes()])
       .catch((e) => setError(e instanceof Error ? e.message : 'Erro ao carregar'))
       .finally(() => setLoading(false));
-    api.cidades().then((r) => setCidades(r.items || [])).catch(() => {});
   }, []);
+
+  async function onFotoChange(file: File | null, opts?: { usarPortal?: boolean; restaurar?: boolean }) {
+    setFotoSaving(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await api.uploadFotoCandidato(file || undefined, opts);
+      if (res.candidato) setPerfil(res.candidato);
+      setSuccess(res.message || 'Foto atualizada.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao enviar foto');
+    } finally {
+      setFotoSaving(false);
+    }
+  }
 
   async function onSubmitPerfil(e: FormEvent) {
     e.preventDefault();
@@ -203,15 +228,31 @@ export function CandidatoDashboardPage() {
 
         {!loading && tab === 'perfil' && (
           <>
+            {showCurriculo && perfil && (
+              <div className="glass-card mt-8">
+                <CurriculoPreview perfil={perfil} onClose={() => setShowCurriculo(false)} />
+              </div>
+            )}
+
             {(perfil?.formacao?.length ?? 0) > 0 && (
               <div className="glass-card mt-8">
-                <h2 className="text-lg font-semibold">Formação verificada</h2>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h2 className="text-lg font-semibold">Certificados e formação</h2>
+                  {perfil && (
+                    <button type="button" className="btn-ghost text-sm" onClick={() => setShowCurriculo(true)}>
+                      Ver currículo completo
+                    </button>
+                  )}
+                </div>
                 <p className="mt-1 text-sm text-muted">
-                  Certificados oficiais emitidos pela escola parceira no painel. Progresso EAD aparece como referência.
+                  Certificados oficiais com selo da escola parceira. Progresso EAD aparece como referência.
                 </p>
                 <ul className="mt-4 space-y-3">
                   {perfil!.formacao.map((f) => (
-                    <li key={f.id} className="flex flex-wrap items-start justify-between gap-2 border-t border-edge pt-3 first:border-0 first:pt-0">
+                    <li
+                      key={f.id}
+                      className="flex flex-wrap items-start justify-between gap-2 border-t border-edge pt-3 first:border-0 first:pt-0"
+                    >
                       <div>
                         <div className="font-medium">{f.titulo}</div>
                         <p className="mt-0.5 text-xs text-subtle">
@@ -220,18 +261,84 @@ export function CandidatoDashboardPage() {
                           {f.concluidoEm ? ` · ${new Date(f.concluidoEm).toLocaleDateString('pt-BR')}` : ''}
                         </p>
                       </div>
-                      {f.seloCertificado && f.status === 'concluido' && (
-                        <span className="rounded-full bg-brand-accent/10 px-2.5 py-0.5 text-xs font-medium text-brand-accent">
-                          ✓ {site.badgeCertified}
+                      {f.seloCertificado && f.status === 'concluido' ? (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-brand-accent/30 bg-brand-accent/10 px-3 py-1 text-xs font-semibold text-brand-accent">
+                          ✓ Selo {site.badgeCertified}
                         </span>
+                      ) : (
+                        <span className="text-xs text-faint">{f.status === 'concluido' ? 'Concluído' : 'Em andamento'}</span>
                       )}
                     </li>
                   ))}
                 </ul>
               </div>
             )}
+
+            <div className="glass-card mt-8">
+              <h2 className="text-lg font-semibold">Foto de perfil</h2>
+              <p className="mt-1 text-sm text-muted">
+                Alunos do portal CTI podem usar a foto do EAD ou enviar uma nova imagem.
+              </p>
+              <div className="mt-4 flex flex-wrap items-center gap-4">
+                {perfil?.fotoUrl ? (
+                  <img
+                    src={perfil.fotoUrl}
+                    alt=""
+                    className="h-20 w-20 rounded-xl object-cover ring-1 ring-[var(--cj-border)]"
+                  />
+                ) : (
+                  <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-brand-accent/10 text-2xl font-bold text-brand-accent">
+                    {(perfil?.nome || user?.nome || '?').charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  <label className="btn-ghost cursor-pointer text-sm">
+                    {fotoSaving ? 'Enviando…' : 'Enviar foto'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={fotoSaving}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) onFotoChange(f);
+                        e.target.value = '';
+                      }}
+                    />
+                  </label>
+                  {user?.tipo === 'aluno' && (
+                    <button
+                      type="button"
+                      className="btn-ghost text-sm"
+                      disabled={fotoSaving}
+                      onClick={() => onFotoChange(null, { usarPortal: true })}
+                    >
+                      Usar foto do portal
+                    </button>
+                  )}
+                  {perfil?.fotoUrl && (
+                    <button
+                      type="button"
+                      className="btn-ghost text-sm text-red-300"
+                      disabled={fotoSaving}
+                      onClick={() => onFotoChange(null, { restaurar: true })}
+                    >
+                      Remover foto
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
           <form onSubmit={onSubmitPerfil} className="glass-card mt-8 space-y-4">
-            <h2 className="text-lg font-semibold">Currículo simplificado</h2>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-lg font-semibold">Currículo simplificado</h2>
+              {perfil && (
+                <button type="button" className="btn-ghost text-sm" onClick={() => setShowCurriculo(true)}>
+                  Ver / imprimir currículo
+                </button>
+              )}
+            </div>
             <p className="text-sm text-muted">
               Complete seu perfil para se destacar nas candidaturas. Escolas parceiras podem enriquecer seu perfil com
               o selo {site.badgeCertified}.
@@ -255,33 +362,18 @@ export function CandidatoDashboardPage() {
               value={form.resumo}
               onChange={(e) => setForm((f) => ({ ...f, resumo: e.target.value }))}
             />
-            <div className="grid gap-4 md:grid-cols-3">
-              <select
-                className="select"
-                value={form.cidadeId}
-                onChange={(e) => setForm((f) => ({ ...f, cidadeId: e.target.value }))}
-              >
-                <option value="">Cidade</option>
-                {cidades.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nome}
-                  </option>
-                ))}
-              </select>
-              <input
-                className="input"
-                placeholder="Bairro"
-                value={form.bairro}
-                onChange={(e) => setForm((f) => ({ ...f, bairro: e.target.value }))}
-              />
-              <input
-                className="input"
-                placeholder="UF"
-                maxLength={2}
-                value={form.uf}
-                onChange={(e) => setForm((f) => ({ ...f, uf: e.target.value.toUpperCase() }))}
-              />
-            </div>
+            <LocationSelect
+              estadoId={form.estadoId}
+              cidadeId={form.cidadeId}
+              uf={form.uf}
+              onChange={onLocationChange}
+            />
+            <input
+              className="input max-w-md"
+              placeholder="Bairro"
+              value={form.bairro}
+              onChange={(e) => setForm((f) => ({ ...f, bairro: e.target.value }))}
+            />
             <select
               className="select"
               value={form.disponibilidade}

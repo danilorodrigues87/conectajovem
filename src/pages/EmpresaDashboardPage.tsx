@@ -1,19 +1,20 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { CurriculoPreview } from '../components/CurriculoPreview';
 import { Layout } from '../components/Layout';
+import { LocationSelect } from '../components/LocationSelect';
 import {
   api,
   clearSession,
   type CandidaturaEmpresa,
   type CandidatoPerfil,
-  type Cidade,
   type EmpresaPerfil,
   type UserEmpresa,
   type Vaga,
 } from '../lib/api';
 import { useBranding } from '../hooks/useBranding';
 
-type Tab = 'vagas' | 'candidaturas' | 'perfil';
+type Tab = 'vagas' | 'candidaturas' | 'talentos' | 'perfil';
 
 const TIPO_LABEL: Record<string, string> = {
   aprendiz: 'Jovem Aprendiz',
@@ -43,6 +44,7 @@ const emptyVagaForm = {
   titulo: '',
   tipoVaga: 'clt',
   modalidade: 'presencial',
+  estadoId: '',
   cidadeId: '',
   descricao: '',
   requisitos: '',
@@ -70,9 +72,11 @@ export function EmpresaDashboardPage() {
   const [empresa, setEmpresa] = useState<EmpresaPerfil | null>(null);
   const [vagas, setVagas] = useState<Vaga[]>([]);
   const [candidaturas, setCandidaturas] = useState<CandidaturaEmpresa[]>([]);
-  const [cidades, setCidades] = useState<Cidade[]>([]);
+  const [talentos, setTalentos] = useState<CandidatoPerfil[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [logoSaving, setLogoSaving] = useState(false);
+  const [buscandoTalentos, setBuscandoTalentos] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -80,6 +84,7 @@ export function EmpresaDashboardPage() {
   const [form, setForm] = useState(emptyVagaForm);
   const [filtroVaga, setFiltroVaga] = useState('');
   const [filtroStatusCand, setFiltroStatusCand] = useState('');
+  const [filtroTalentos, setFiltroTalentos] = useState({ q: '', habilidade: '', uf: '', cidadeId: '', estadoId: '' });
   const [detalheCand, setDetalheCand] = useState<{
     candidatura: CandidaturaEmpresa;
     candidato: CandidatoPerfil | null;
@@ -89,10 +94,32 @@ export function EmpresaDashboardPage() {
     contatoNome: '',
     whatsapp: '',
     email: '',
+    estadoId: '',
     cidadeId: '',
     bairro: '',
     uf: '',
   });
+
+  const onPerfilLocationChange = useCallback(
+    (next: { estadoId: string; cidadeId: string; uf: string }) => {
+      setPerfilForm((f) => ({ ...f, ...next }));
+    },
+    [],
+  );
+
+  const onVagaLocationChange = useCallback(
+    (next: { estadoId: string; cidadeId: string; uf: string }) => {
+      setForm((f) => ({ ...f, estadoId: next.estadoId, cidadeId: next.cidadeId }));
+    },
+    [],
+  );
+
+  const onTalentosLocationChange = useCallback(
+    (next: { estadoId: string; cidadeId: string; uf: string }) => {
+      setFiltroTalentos((f) => ({ ...f, estadoId: next.estadoId, cidadeId: next.cidadeId, uf: next.uf }));
+    },
+    [],
+  );
 
   function flash(msg: string, isError = false) {
     if (!msg) {
@@ -131,6 +158,7 @@ export function EmpresaDashboardPage() {
         contatoNome: r.empresa.contatoNome || '',
         whatsapp: r.empresa.whatsapp || '',
         email: r.empresa.email || '',
+        estadoId: '',
         cidadeId: r.empresa.cidadeId ? String(r.empresa.cidadeId) : '',
         bairro: r.empresa.bairro || '',
         uf: r.empresa.uf || '',
@@ -148,14 +176,32 @@ export function EmpresaDashboardPage() {
 
   useEffect(() => {
     loadAll();
-    api.cidades().then((r) => setCidades(r.items || [])).catch(() => {});
   }, []);
+
+  function loadTalentos() {
+    setBuscandoTalentos(true);
+    return api
+      .empresaTalentos({
+        q: filtroTalentos.q.trim() || undefined,
+        habilidade: filtroTalentos.habilidade.trim() || undefined,
+        uf: filtroTalentos.uf || undefined,
+        cidadeId: filtroTalentos.cidadeId ? Number(filtroTalentos.cidadeId) : undefined,
+      })
+      .then((r) => setTalentos(r.items || []))
+      .finally(() => setBuscandoTalentos(false));
+  }
 
   useEffect(() => {
     if (tab === 'candidaturas' && user?.status === 'aprovada') {
       loadCandidaturas().catch((e) => flash(e instanceof Error ? e.message : 'Erro', true));
     }
   }, [tab, filtroVaga, filtroStatusCand, user?.status]);
+
+  useEffect(() => {
+    if (tab === 'talentos' && user?.status === 'aprovada') {
+      loadTalentos().catch((e) => flash(e instanceof Error ? e.message : 'Erro', true));
+    }
+  }, [tab, user?.status]);
 
   function openNovaVaga() {
     setEditVagaId(null);
@@ -169,6 +215,7 @@ export function EmpresaDashboardPage() {
       titulo: v.titulo,
       tipoVaga: v.tipoVaga || 'clt',
       modalidade: v.modalidade || 'presencial',
+      estadoId: '',
       cidadeId: v.cidadeId ? String(v.cidadeId) : '',
       descricao: v.descricao,
       requisitos: v.requisitos || '',
@@ -251,6 +298,20 @@ export function EmpresaDashboardPage() {
     }
   }
 
+  async function onLogoChange(file: File | null, restaurar?: boolean) {
+    setLogoSaving(true);
+    flash('');
+    try {
+      const res = await api.uploadLogoEmpresa(file || undefined, restaurar);
+      if (res.empresa) setEmpresa(res.empresa);
+      flash(res.message || 'Logo atualizada.');
+    } catch (err) {
+      flash(err instanceof Error ? err.message : 'Erro ao enviar logo', true);
+    } finally {
+      setLogoSaving(false);
+    }
+  }
+
   async function onSubmitPerfil(e: FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -317,14 +378,21 @@ export function EmpresaDashboardPage() {
         {aprovada && (
           <>
             <div className="mt-8 flex flex-wrap gap-6 border-b border-edge text-sm">
-              {(['vagas', 'candidaturas', 'perfil'] as Tab[]).map((t) => (
+              {(
+                [
+                  ['vagas', 'Vagas'],
+                  ['candidaturas', 'Candidaturas'],
+                  ['talentos', 'Buscar talentos'],
+                  ['perfil', 'Perfil'],
+                ] as const
+              ).map(([t, label]) => (
                 <button
                   key={t}
                   type="button"
                   onClick={() => setTab(t)}
-                  className={`border-b-2 pb-3 font-medium capitalize transition ${tabClass(t)}`}
+                  className={`border-b-2 pb-3 font-medium transition ${tabClass(t)}`}
                 >
-                  {t === 'vagas' ? 'Vagas' : t === 'candidaturas' ? 'Candidaturas' : 'Perfil'}
+                  {label}
                 </button>
               ))}
             </div>
@@ -371,19 +439,13 @@ export function EmpresaDashboardPage() {
                         <option value="hibrido">Híbrido</option>
                         <option value="remoto">Remoto</option>
                       </select>
-                      <select
-                        className="select"
-                        value={form.cidadeId}
-                        onChange={(e) => setForm((f) => ({ ...f, cidadeId: e.target.value }))}
-                      >
-                        <option value="">Cidade (opcional)</option>
-                        {cidades.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.nome}
-                          </option>
-                        ))}
-                      </select>
                     </div>
+                    <LocationSelect
+                      estadoId={form.estadoId}
+                      cidadeId={form.cidadeId}
+                      uf=""
+                      onChange={onVagaLocationChange}
+                    />
                     <textarea
                       className="input min-h-[120px] resize-y"
                       placeholder="Descrição *"
@@ -526,12 +588,29 @@ export function EmpresaDashboardPage() {
                 {detalheCand && (
                   <div className="glass-card mb-6 space-y-4 border border-brand-accent/20">
                     <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <h3 className="text-lg font-semibold">{detalheCand.candidato?.nome || detalheCand.candidatura.candidatoNome}</h3>
-                        <p className="text-sm text-subtle">
-                          Vaga: {detalheCand.candidatura.vagaTitulo} ·{' '}
-                          {STATUS_CAND[detalheCand.candidatura.status] || detalheCand.candidatura.status}
-                        </p>
+                      <div className="flex items-start gap-3">
+                        {detalheCand.candidato?.fotoUrl ? (
+                          <img
+                            src={detalheCand.candidato.fotoUrl}
+                            alt=""
+                            className="h-14 w-14 rounded-xl object-cover ring-1 ring-[var(--cj-border)]"
+                          />
+                        ) : (
+                          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-brand-accent/10 font-bold text-brand-accent">
+                            {(detalheCand.candidato?.nome || detalheCand.candidatura.candidatoNome || '?')
+                              .charAt(0)
+                              .toUpperCase()}
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="text-lg font-semibold">
+                            {detalheCand.candidato?.nome || detalheCand.candidatura.candidatoNome}
+                          </h3>
+                          <p className="text-sm text-subtle">
+                            Vaga: {detalheCand.candidatura.vagaTitulo} ·{' '}
+                            {STATUS_CAND[detalheCand.candidatura.status] || detalheCand.candidatura.status}
+                          </p>
+                        </div>
                       </div>
                       <button type="button" className="btn-ghost text-xs" onClick={() => setDetalheCand(null)}>
                         Fechar
@@ -554,6 +633,11 @@ export function EmpresaDashboardPage() {
                     )}
                     {detalheCand.candidato?.temSeloCertificado && (
                       <p className="text-sm text-emerald-300">✓ Formação verificada (selo certificado)</p>
+                    )}
+                    {detalheCand.candidato && (
+                      <div className="rounded-xl border border-edge p-4">
+                        <CurriculoPreview perfil={detalheCand.candidato} />
+                      </div>
                     )}
                     <div className="flex flex-wrap gap-2">
                       {waLink(detalheCand.candidato?.whatsapp || detalheCand.candidatura.candidatoWhatsapp) && (
@@ -608,10 +692,134 @@ export function EmpresaDashboardPage() {
               </div>
             )}
 
+            {tab === 'talentos' && (
+              <div className="mt-8">
+                <h2 className="text-lg font-semibold">Banco de talentos</h2>
+                <p className="mt-1 text-sm text-muted">
+                  Busque candidatos ativos por nome, habilidade ou localização.
+                </p>
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  <input
+                    className="input"
+                    placeholder="Nome, e-mail ou resumo…"
+                    value={filtroTalentos.q}
+                    onChange={(e) => setFiltroTalentos((f) => ({ ...f, q: e.target.value }))}
+                  />
+                  <input
+                    className="input"
+                    placeholder="Habilidade (ex: Excel)"
+                    value={filtroTalentos.habilidade}
+                    onChange={(e) => setFiltroTalentos((f) => ({ ...f, habilidade: e.target.value }))}
+                  />
+                </div>
+                <LocationSelect
+                  className="mt-4"
+                  estadoId={filtroTalentos.estadoId}
+                  cidadeId={filtroTalentos.cidadeId}
+                  uf={filtroTalentos.uf}
+                  onChange={onTalentosLocationChange}
+                />
+                <button
+                  type="button"
+                  className="btn-primary mt-4 text-sm"
+                  disabled={buscandoTalentos}
+                  onClick={() => loadTalentos().catch((e) => flash(e instanceof Error ? e.message : 'Erro', true))}
+                >
+                  {buscandoTalentos ? 'Buscando…' : 'Buscar candidatos'}
+                </button>
+
+                <div className="mt-6 space-y-3">
+                  {talentos.length === 0 ? (
+                    <div className="glass-card text-center text-muted">
+                      {buscandoTalentos ? 'Buscando…' : 'Nenhum candidato encontrado com estes filtros.'}
+                    </div>
+                  ) : (
+                    talentos.map((c) => (
+                      <div key={c.id} className="glass-card">
+                        <div className="flex flex-wrap items-start gap-3">
+                          {c.fotoUrl ? (
+                            <img
+                              src={c.fotoUrl}
+                              alt=""
+                              className="h-12 w-12 rounded-xl object-cover ring-1 ring-[var(--cj-border)]"
+                            />
+                          ) : (
+                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-accent/10 font-bold text-brand-accent">
+                              {(c.nome || '?').charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold">{c.nome}</div>
+                            <p className="mt-1 text-sm text-subtle line-clamp-2">{c.resumo || 'Sem resumo'}</p>
+                            {c.habilidades.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                {c.habilidades.slice(0, 6).map((h) => (
+                                  <span key={h} className="rounded-full bg-white/10 px-2 py-0.5 text-xs">
+                                    {h}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {c.temSeloCertificado && (
+                              <p className="mt-2 text-xs text-emerald-300">✓ Formação verificada</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
             {tab === 'perfil' && empresa && (
               <form onSubmit={onSubmitPerfil} className="glass-card mt-8 max-w-xl space-y-4">
                 <h2 className="text-lg font-semibold">Dados da empresa</h2>
                 <p className="text-xs text-faint">CNPJ: {empresa.cnpj} · Razão social: {empresa.razaoSocial}</p>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium">Logo da empresa</label>
+                  <p className="mb-3 text-xs text-subtle">Aparece nas vagas e na página de empresas parceiras.</p>
+                  <div className="flex flex-wrap items-center gap-4">
+                    {empresa.logoUrl ? (
+                      <img
+                        src={empresa.logoUrl}
+                        alt=""
+                        className="h-16 w-16 rounded-xl object-contain bg-white/5 p-1 ring-1 ring-[var(--cj-border)]"
+                      />
+                    ) : (
+                      <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-brand-accent/10 text-xl font-bold text-brand-accent">
+                        {(empresa.nomeFantasia || '?').charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      <label className="btn-ghost cursor-pointer text-sm">
+                        {logoSaving ? 'Enviando…' : 'Enviar logo'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={logoSaving}
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) onLogoChange(f);
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                      {empresa.logoUrl && (
+                        <button
+                          type="button"
+                          className="btn-ghost text-sm text-red-300"
+                          disabled={logoSaving}
+                          onClick={() => onLogoChange(null, true)}
+                        >
+                          Remover logo
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
                 <input
                   className="input"
                   placeholder="Nome fantasia"
@@ -637,33 +845,20 @@ export function EmpresaDashboardPage() {
                   value={perfilForm.email}
                   onChange={(e) => setPerfilForm((f) => ({ ...f, email: e.target.value }))}
                 />
-                <div className="grid gap-4 md:grid-cols-3">
-                  <select
-                    className="select md:col-span-2"
-                    value={perfilForm.cidadeId}
-                    onChange={(e) => setPerfilForm((f) => ({ ...f, cidadeId: e.target.value }))}
-                  >
-                    <option value="">Cidade</option>
-                    {cidades.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.nome}
-                      </option>
-                    ))}
-                  </select>
+                <div className="grid gap-4">
+                  <LocationSelect
+                    estadoId={perfilForm.estadoId}
+                    cidadeId={perfilForm.cidadeId}
+                    uf={perfilForm.uf}
+                    onChange={onPerfilLocationChange}
+                  />
                   <input
-                    className="input"
-                    placeholder="UF"
-                    maxLength={2}
-                    value={perfilForm.uf}
-                    onChange={(e) => setPerfilForm((f) => ({ ...f, uf: e.target.value.toUpperCase() }))}
+                    className="input max-w-md"
+                    placeholder="Bairro"
+                    value={perfilForm.bairro}
+                    onChange={(e) => setPerfilForm((f) => ({ ...f, bairro: e.target.value }))}
                   />
                 </div>
-                <input
-                  className="input"
-                  placeholder="Bairro"
-                  value={perfilForm.bairro}
-                  onChange={(e) => setPerfilForm((f) => ({ ...f, bairro: e.target.value }))}
-                />
                 <button type="submit" className="btn-primary" disabled={saving}>
                   {saving ? 'Salvando…' : 'Salvar perfil'}
                 </button>

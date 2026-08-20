@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Layout } from '../components/Layout';
-import { api, type Cidade, type Empresa } from '../lib/api';
+import { api, type Empresa } from '../lib/api';
 import { site } from '../config/site';
 
 function EmpresaCard({ empresa }: { empresa: Empresa }) {
@@ -9,9 +9,17 @@ function EmpresaCard({ empresa }: { empresa: Empresa }) {
   return (
     <div className="glass-card group transition hover:border-brand-accent/25">
       <div className="flex items-start gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-accent/30 to-brand/30 text-lg font-bold ring-1 ring-[var(--cj-border)]">
-          {initial}
-        </div>
+        {empresa.logoUrl ? (
+          <img
+            src={empresa.logoUrl}
+            alt=""
+            className="h-12 w-12 shrink-0 rounded-xl object-contain bg-white/5 p-1 ring-1 ring-[var(--cj-border)]"
+          />
+        ) : (
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-accent/30 to-brand/30 text-lg font-bold ring-1 ring-[var(--cj-border)]">
+            {initial}
+          </div>
+        )}
         <div>
           <h3 className="font-semibold transition group-hover:text-brand-accent">{empresa.nomeFantasia}</h3>
           <p className="mt-1 text-sm text-subtle">
@@ -26,24 +34,19 @@ function EmpresaCard({ empresa }: { empresa: Empresa }) {
 
 export function EmpresasPage() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
-  const [cidades, setCidades] = useState<Cidade[]>([]);
-  const [cidade, setCidade] = useState('');
+  const [busca, setBusca] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    api.cidades().then((r) => setCidades(r.items || [])).catch(() => {});
-  }, []);
 
   useEffect(() => {
     setLoading(true);
     setError('');
     api
-      .empresas(cidade ? Number(cidade) : undefined)
+      .empresas({ q: busca.trim() || undefined })
       .then((r) => setEmpresas(r.items || []))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [cidade]);
+  }, [busca]);
 
   return (
     <Layout>
@@ -56,16 +59,15 @@ export function EmpresasPage() {
             Conheça quem contrata pelo {site.name} — empresas locais aprovadas que publicam vagas reais para jovens
             talentos.
           </p>
-          <div className="mt-8 max-w-xs">
-            <label className="mb-1.5 block text-xs text-faint">Filtrar por cidade</label>
-            <select className="select" value={cidade} onChange={(e) => setCidade(e.target.value)}>
-              <option value="">Todas as cidades</option>
-              {cidades.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.nome}
-                </option>
-              ))}
-            </select>
+          <div className="mt-8 max-w-md">
+            <label className="mb-1.5 block text-xs text-faint">Buscar empresa</label>
+            <input
+              className="input"
+              type="search"
+              placeholder="Nome fantasia ou razão social…"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
           </div>
         </div>
       </div>
@@ -75,7 +77,7 @@ export function EmpresasPage() {
         {error && <p className="text-red-500 dark:text-red-400">{error}</p>}
         {!loading && !error && empresas.length === 0 && (
           <div className="glass-card text-center">
-            <p className="text-muted">Nenhuma empresa parceira aprovada nesta região ainda.</p>
+            <p className="text-muted">Nenhuma empresa parceira encontrada.</p>
             <Link to="/cadastro/empresa" className="btn-primary mt-4 inline-flex text-sm">
               Quero ser empresa parceira
             </Link>

@@ -198,3 +198,32 @@
     border-color: var(--cj-border);
   }
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .curriculo-root,
+  .curriculo-root * {
+    visibility: visible;
+  }
+
+  .curriculo-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .curriculo-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    background: white !important;
+    color: #111 !important;
+  }
+}

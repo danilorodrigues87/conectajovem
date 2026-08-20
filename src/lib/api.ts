@@ -18,6 +18,7 @@ export type Vaga = {
   modalidade?: string;
   empresaId?: number;
   empresaNome?: string;
+  empresaLogoUrl?: string | null;
   status?: string;
   publicadaEm?: string;
   viewsCount?: number;
@@ -30,9 +31,12 @@ export type Empresa = {
   cidadeId?: number | null;
   cidadeNome?: string;
   uf?: string;
+  logoUrl?: string | null;
 };
 
 export type Cidade = { id: number; nome: string };
+
+export type Estado = { id: number; nome: string; uf: string };
 
 export type UserEmpresa = {
   id: number;
@@ -55,6 +59,7 @@ export type EmpresaPerfil = {
   bairro?: string;
   uf?: string;
   status: string;
+  logoUrl?: string | null;
 };
 
 export type CandidaturaEmpresa = Candidatura & {
@@ -88,6 +93,7 @@ export type CandidatoPerfil = {
   uf?: string;
   disponibilidade: string;
   tipo: string;
+  fotoUrl?: string | null;
   habilidades: string[];
   formacao: FormacaoCandidato[];
   temSeloCertificado: boolean;
@@ -130,10 +136,11 @@ export type AuthRole = 'candidato' | 'empresa';
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   let res: Response;
   try {
+    const isForm = options.body instanceof FormData;
     res = await fetch(`${API}${path}`, {
       ...options,
       headers: {
-        'Content-Type': 'application/json',
+        ...(isForm ? {} : { 'Content-Type': 'application/json' }),
         ...(options.headers || {}),
       },
     });
@@ -149,9 +156,24 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       'Não foi possível conectar à API. Verifique CONECT_CORS_ORIGINS no painel e se o backend foi publicado.',
     );
   }
-  const data = await res.json().catch(() => ({}));
+  const raw = await res.text();
+  let data: Record<string, unknown> = {};
+  if (raw.trim()) {
+    try {
+      data = JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      if (raw.includes('<!doctype') || raw.includes('<html')) {
+        throw new Error(
+          res.status === 404
+            ? 'Recurso não encontrado na API. Publique a versão mais recente do painel-cti.'
+            : 'Resposta inválida do servidor. Verifique se a API está atualizada.',
+        );
+      }
+      throw new Error(`Resposta inválida do servidor (${res.status}).`);
+    }
+  }
   if (!res.ok) {
-    throw new Error((data as { message?: string }).message || `Erro na requisição (${res.status})`);
+    throw new Error((data.message as string) || `Erro na requisição (${res.status})`);
   }
   return data as T;
 }
@@ -166,6 +188,10 @@ async function authRequest<T>(path: string, options: RequestInit = {}): Promise<
       ...(options.headers || {}),
     },
   });
+}
+
+async function authFormRequest<T>(path: string, formData: FormData, method = 'POST'): Promise<T> {
+  return authRequest<T>(path, { method, body: formData });
 }
 
 export const api = {
@@ -188,11 +214,17 @@ export const api = {
     return request<{ items: Vaga[]; sqlOk?: boolean }>(`/conect/public/vagas${qs ? `?${qs}` : ''}`);
   },
   vaga: (slug: string) => request<{ vaga: Vaga }>(`/conect/public/vagas/${encodeURIComponent(slug)}`),
-  empresas: (cidade?: number) => {
-    const qs = cidade ? `?cidade=${cidade}` : '';
-    return request<{ items: Empresa[] }>(`/conect/public/empresas${qs}`);
+  empresas: (params: { q?: string; cidade?: number } = {}) => {
+    const q = new URLSearchParams();
+    if (params.q) q.set('q', params.q);
+    if (params.cidade) q.set('cidade', String(params.cidade));
+    const qs = q.toString();
+    return request<{ items: Empresa[] }>(`/conect/public/empresas${qs ? `?${qs}` : ''}`);
   },
   cidades: () => request<{ items: Cidade[] }>('/conect/public/cidades'),
+  estados: () => request<{ items: Estado[] }>('/conect/public/estados'),
+  cidadesPorEstado: (estadoId: number) =>
+    request<{ items: Cidade[] }>(`/conect/public/estados/${estadoId}/cidades`),
   loginCandidato: (email: string, password: string) =>
     request<{ user: unknown; tokens: { accessToken: string } }>('/conect/auth/login', {
       method: 'POST',
@@ -220,6 +252,12 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify(payload),
     }),
+  uploadLogoEmpresa: (file?: File, restaurar?: boolean) => {
+    const fd = new FormData();
+    if (file) fd.append('logo', file);
+    if (restaurar) fd.append('restaurar', '1');
+    return authFormRequest<{ message?: string; empresa: EmpresaPerfil }>('/conect-empresa/logo', fd);
+  },
   meCandidato: () =>
     authRequest<{ user: UserCandidato; candidato: CandidatoPerfil }>('/conect/me'),
   atualizarPerfilCandidato: (payload: Record<string, unknown>) =>
@@ -227,6 +265,13 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify(payload),
     }),
+  uploadFotoCandidato: (file?: File, opts?: { usarPortal?: boolean; restaurar?: boolean }) => {
+    const fd = new FormData();
+    if (file) fd.append('foto', file);
+    if (opts?.usarPortal) fd.append('usarPortal', '1');
+    if (opts?.restaurar) fd.append('restaurar', '1');
+    return authFormRequest<{ message?: string; candidato: CandidatoPerfil }>('/conect/me/foto', fd);
+  },
   candidaturas: () => authRequest<{ items: Candidatura[] }>('/conect/candidaturas'),
   candidatar: (vagaId: number, mensagem?: string) =>
     authRequest<{ message?: string; candidatura?: Candidatura }>('/conect/candidaturas', {
@@ -273,6 +318,15 @@ export const api = {
       `/conect-empresa/candidaturas/${id}`,
       { method: 'PUT', body: JSON.stringify(payload) },
     ),
+  empresaTalentos: (params: { q?: string; habilidade?: string; cidadeId?: number; uf?: string } = {}) => {
+    const q = new URLSearchParams();
+    if (params.q) q.set('q', params.q);
+    if (params.habilidade) q.set('habilidade', params.habilidade);
+    if (params.cidadeId) q.set('cidadeId', String(params.cidadeId));
+    if (params.uf) q.set('uf', params.uf);
+    const qs = q.toString();
+    return authRequest<{ items: CandidatoPerfil[] }>(`/conect-empresa/talentos${qs ? `?${qs}` : ''}`);
+  },
 };
 
 export function saveSession(token: string, role: AuthRole) {

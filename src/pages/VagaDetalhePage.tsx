@@ -1,7 +1,21 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { FieldLabel } from '../components/FieldLabel';
 import { Layout } from '../components/Layout';
 import { api, getRole, getToken, type Vaga } from '../lib/api';
+
+const tipoLabel: Record<string, string> = {
+  aprendiz: 'Jovem Aprendiz',
+  estagio: 'Estágio',
+  clt: 'CLT',
+  freelance: 'Freelance',
+};
+
+const modalidadeLabel: Record<string, string> = {
+  presencial: 'Presencial',
+  hibrido: 'Híbrido',
+  remoto: 'Remoto',
+};
 
 export function VagaDetalhePage() {
   const { slug = '' } = useParams();
@@ -80,17 +94,53 @@ export function VagaDetalhePage() {
         {error && <p className="mt-6 text-red-500 dark:text-red-400">{error}</p>}
         {vaga && (
           <article className="card mt-6">
-            <p className="text-sm text-subtle">{vaga.empresaNome}</p>
-            <h1 className="mt-1 text-3xl font-bold">{vaga.titulo}</h1>
-            <p className="mt-2 text-muted">
-              {[vaga.cidadeNome, vaga.uf, vaga.modalidade].filter(Boolean).join(' · ')}
+            <div className="flex items-start gap-4">
+              {vaga.empresaLogoUrl ? (
+                <img
+                  src={vaga.empresaLogoUrl}
+                  alt=""
+                  className="h-14 w-14 shrink-0 rounded-xl object-contain bg-white/5 p-1 ring-1 ring-[var(--cj-border)]"
+                />
+              ) : (
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-brand-accent/10 text-lg font-bold text-brand-accent">
+                  {(vaga.empresaNome || '?').charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div>
+                <FieldLabel>Empresa</FieldLabel>
+                <p className="font-medium">{vaga.empresaNome}</p>
+                <FieldLabel>Título</FieldLabel>
+                <h1 className="text-3xl font-bold">{vaga.titulo}</h1>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <div>
+                <FieldLabel>Tipo</FieldLabel>
+                <p className="text-muted">{tipoLabel[vaga.tipoVaga] || vaga.tipoVaga}</p>
+              </div>
+              {vaga.modalidade && (
+                <div>
+                  <FieldLabel>Modalidade</FieldLabel>
+                  <p className="text-muted">{modalidadeLabel[vaga.modalidade] || vaga.modalidade}</p>
+                </div>
+              )}
+            </div>
+
+            <p className="mt-4 text-sm text-subtle">
+              {[vaga.cidadeNome, vaga.uf].filter(Boolean).join(' · ')}
             </p>
-            <div className="mt-6 max-w-none whitespace-pre-wrap text-muted">{vaga.descricao}</div>
+
+            <div className="mt-8">
+              <FieldLabel>Descrição</FieldLabel>
+              <div className="mt-2 max-w-none whitespace-pre-wrap text-muted">{vaga.descricao}</div>
+            </div>
+
             {vaga.requisitos && (
-              <>
-                <h2 className="mt-8 text-lg font-semibold">Requisitos</h2>
+              <div className="mt-8">
+                <FieldLabel>Requisitos</FieldLabel>
                 <p className="mt-2 whitespace-pre-wrap text-muted">{vaga.requisitos}</p>
-              </>
+              </div>
             )}
 
             {applySuccess && (

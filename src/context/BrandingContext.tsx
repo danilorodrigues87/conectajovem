@@ -45,18 +45,16 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (state.loading) return;
     document.title = state.nomePortal;
-  }, [state.nomePortal, state.loading]);
-
-  useEffect(() => {
-    if (state.loading || !state.logoUrl) return;
+    const href = state.logoUrl?.trim() || '/favicon.svg';
     let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
     if (!link) {
       link = document.createElement('link');
       link.rel = 'icon';
       document.head.appendChild(link);
     }
-    link.href = state.logoUrl;
-  }, [state.logoUrl, state.loading]);
+    link.type = href.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
+    link.href = href;
+  }, [state.nomePortal, state.logoUrl, state.loading]);
 
   const value = useMemo(() => state, [state]);
   return <BrandingContext.Provider value={value}>{children}</BrandingContext.Provider>;
