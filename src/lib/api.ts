@@ -43,6 +43,51 @@ export type UserEmpresa = {
   status: 'pendente' | 'aprovada' | 'bloqueada' | string;
 };
 
+export type UserCandidato = {
+  id: number;
+  nome: string;
+  email: string;
+  nivel: string;
+  candidatoId: number;
+  tipo: string;
+};
+
+export type CandidatoPerfil = {
+  id: number;
+  nome: string;
+  email: string;
+  whatsapp: string;
+  resumo: string;
+  cidadeId?: number | null;
+  bairro?: string;
+  uf?: string;
+  disponibilidade: string;
+  tipo: string;
+  habilidades: string[];
+};
+
+export type Candidatura = {
+  id: number;
+  vagaId: number;
+  vagaTitulo: string;
+  vagaSlug: string;
+  tipoVaga: string;
+  empresaNome: string;
+  status: string;
+  mensagemCandidato?: string;
+  createdAt: string;
+};
+
+export type Notificacao = {
+  id: number;
+  tipo: string;
+  titulo: string;
+  mensagem: string;
+  link?: string | null;
+  lida: boolean;
+  createdAt: string;
+};
+
 export type AuthRole = 'candidato' | 'empresa';
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -132,6 +177,22 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   meEmpresa: () => authRequest<{ user: UserEmpresa }>('/conect-empresa/me'),
+  meCandidato: () =>
+    authRequest<{ user: UserCandidato; candidato: CandidatoPerfil }>('/conect/me'),
+  atualizarPerfilCandidato: (payload: Record<string, unknown>) =>
+    authRequest<{ message?: string; candidato: CandidatoPerfil }>('/conect/me', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
+  candidaturas: () => authRequest<{ items: Candidatura[] }>('/conect/candidaturas'),
+  candidatar: (vagaId: number, mensagem?: string) =>
+    authRequest<{ message?: string; candidatura?: Candidatura }>('/conect/candidaturas', {
+      method: 'POST',
+      body: JSON.stringify({ vagaId, mensagem }),
+    }),
+  notificacoes: () => authRequest<{ items: Notificacao[] }>('/conect/notificacoes'),
+  marcarNotificacaoLida: (id: number) =>
+    authRequest<{ message?: string }>(`/conect/notificacoes/${id}/lida`, { method: 'POST' }),
   empresaVagas: () => authRequest<{ items: Vaga[]; sqlOk?: boolean }>('/conect-empresa/vagas'),
   criarVaga: (payload: Record<string, unknown>) =>
     authRequest<{ message?: string; vaga?: Vaga }>('/conect-empresa/vagas', {

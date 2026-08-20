@@ -1,20 +1,368 @@
+import { FormEvent, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Layout } from '../components/Layout';
+import {
+  api,
+  clearSession,
+  type CandidatoPerfil,
+  type Candidatura,
+  type Cidade,
+  type Notificacao,
+  type UserCandidato,
+} from '../lib/api';
+import { site } from '../config/site';
+
+type Tab = 'perfil' | 'candidaturas' | 'notificacoes';
+
+const TIPO_LABEL: Record<string, string> = {
+  aprendiz: 'Jovem Aprendiz',
+  estagio: 'Estágio',
+  clt: 'CLT',
+  freelance: 'Freelance',
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  enviada: 'Enviada',
+  visualizada: 'Visualizada',
+  em_analise: 'Em análise',
+  pre_selecionado: 'Pré-selecionado',
+  contratado: 'Contratado',
+  recusado: 'Recusado',
+};
+
+const DISPONIBILIDADE_LABEL: Record<string, string> = {
+  imediata: 'Imediata',
+  '15_dias': 'Em até 15 dias',
+  '30_dias': 'Em até 30 dias',
+  a_combinar: 'A combinar',
+};
 
 export function CandidatoDashboardPage() {
+  const [tab, setTab] = useState<Tab>('perfil');
+  const [user, setUser] = useState<UserCandidato | null>(null);
+  const [perfil, setPerfil] = useState<CandidatoPerfil | null>(null);
+  const [candidaturas, setCandidaturas] = useState<Candidatura[]>([]);
+  const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
+  const [cidades, setCidades] = useState<Cidade[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [habInput, setHabInput] = useState('');
+  const [form, setForm] = useState({
+    nome: '',
+    whatsapp: '',
+    resumo: '',
+    cidadeId: '',
+    bairro: '',
+    uf: '',
+    disponibilidade: 'imediata',
+    habilidades: [] as string[],
+  });
+
+  function loadPerfil() {
+    return api.meCandidato().then((r) => {
+      setUser(r.user);
+      setPerfil(r.candidato);
+      setForm({
+        nome: r.candidato.nome || '',
+        whatsapp: r.candidato.whatsapp || '',
+        resumo: r.candidato.resumo || '',
+        cidadeId: r.candidato.cidadeId ? String(r.candidato.cidadeId) : '',
+        bairro: r.candidato.bairro || '',
+        uf: r.candidato.uf || '',
+        disponibilidade: r.candidato.disponibilidade || 'imediata',
+        habilidades: r.candidato.habilidades || [],
+      });
+    });
+  }
+
+  function loadCandidaturas() {
+    return api.candidaturas().then((r) => setCandidaturas(r.items || []));
+  }
+
+  function loadNotificacoes() {
+    return api.notificacoes().then((r) => setNotificacoes(r.items || []));
+  }
+
+  useEffect(() => {
+    setLoading(true);
+    setError('');
+    Promise.all([loadPerfil(), loadCandidaturas(), loadNotificacoes()])
+      .catch((e) => setError(e instanceof Error ? e.message : 'Erro ao carregar'))
+      .finally(() => setLoading(false));
+    api.cidades().then((r) => setCidades(r.items || [])).catch(() => {});
+  }, []);
+
+  async function onSubmitPerfil(e: FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await api.atualizarPerfilCandidato({
+        nome: form.nome,
+        whatsapp: form.whatsapp,
+        resumo: form.resumo,
+        cidadeId: form.cidadeId ? Number(form.cidadeId) : null,
+        bairro: form.bairro,
+        uf: form.uf,
+        disponibilidade: form.disponibilidade,
+        habilidades: form.habilidades,
+      });
+      setPerfil(res.candidato);
+      setSuccess(res.message || 'Perfil atualizado.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao salvar');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function addHabilidade() {
+    const h = habInput.trim();
+    if (!h || form.habilidades.includes(h)) return;
+    setForm((f) => ({ ...f, habilidades: [...f.habilidades, h] }));
+    setHabInput('');
+  }
+
+  function removeHabilidade(h: string) {
+    setForm((f) => ({ ...f, habilidades: f.habilidades.filter((x) => x !== h) }));
+  }
+
+  async function marcarLida(id: number) {
+    try {
+      await api.marcarNotificacaoLida(id);
+      setNotificacoes((list) => list.map((n) => (n.id === id ? { ...n, lida: true } : n)));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function logout() {
+    clearSession();
+    window.location.href = '/login';
+  }
+
+  const naoLidas = notificacoes.filter((n) => !n.lida).length;
+
   return (
     <Layout>
-      <div className="mx-auto max-w-4xl px-4 py-12">
-        <h1 className="text-2xl font-bold">Área do candidato</h1>
-        <p className="mt-2 text-muted">Em breve: currículo, candidaturas e notificações.</p>
-        <div className="card mt-8">
-          <p className="text-muted">
-            Você está autenticado. Explore as{' '}
-            <a href="/vagas" className="text-brand-accent underline">
-              vagas abertas
-            </a>
-            .
-          </p>
+      <div className="mx-auto max-w-5xl px-4 py-10">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="badge mb-2">Área do candidato</p>
+            <h1 className="text-2xl font-bold md:text-3xl">Olá, {user?.nome || '…'}</h1>
+            <p className="mt-1 text-muted">Gerencie seu perfil, candidaturas e notificações no {site.name}.</p>
+          </div>
+          <div className="flex gap-2">
+            <Link to="/vagas" className="btn-ghost text-sm">
+              Ver vagas
+            </Link>
+            <button type="button" onClick={logout} className="btn-ghost text-sm">
+              Sair
+            </button>
+          </div>
         </div>
+
+        <div className="mt-8 flex flex-wrap gap-2 border-b border-edge pb-4">
+          {(
+            [
+              ['perfil', 'Meu perfil'],
+              ['candidaturas', `Candidaturas (${candidaturas.length})`],
+              ['notificacoes', `Notificações${naoLidas ? ` (${naoLidas})` : ''}`],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setTab(key)}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                tab === key ? 'btn-primary' : 'btn-ghost'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {loading && <p className="mt-8 text-subtle">Carregando…</p>}
+        {error && <p className="mt-6 text-sm text-red-400">{error}</p>}
+        {success && <p className="mt-6 text-sm text-emerald-400">{success}</p>}
+
+        {!loading && tab === 'perfil' && (
+          <form onSubmit={onSubmitPerfil} className="glass-card mt-8 space-y-4">
+            <h2 className="text-lg font-semibold">Currículo simplificado</h2>
+            <p className="text-sm text-muted">
+              Complete seu perfil para se destacar nas candidaturas. Escolas parceiras podem enriquecer seu perfil com
+              o selo {site.badgeCertified}.
+            </p>
+            <input
+              className="input"
+              placeholder="Nome completo *"
+              value={form.nome}
+              onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
+              required
+            />
+            <input
+              className="input"
+              placeholder="WhatsApp"
+              value={form.whatsapp}
+              onChange={(e) => setForm((f) => ({ ...f, whatsapp: e.target.value }))}
+            />
+            <textarea
+              className="input min-h-[100px] resize-y"
+              placeholder="Resumo profissional — objetivos, experiências e interesses"
+              value={form.resumo}
+              onChange={(e) => setForm((f) => ({ ...f, resumo: e.target.value }))}
+            />
+            <div className="grid gap-4 md:grid-cols-3">
+              <select
+                className="select"
+                value={form.cidadeId}
+                onChange={(e) => setForm((f) => ({ ...f, cidadeId: e.target.value }))}
+              >
+                <option value="">Cidade</option>
+                {cidades.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nome}
+                  </option>
+                ))}
+              </select>
+              <input
+                className="input"
+                placeholder="Bairro"
+                value={form.bairro}
+                onChange={(e) => setForm((f) => ({ ...f, bairro: e.target.value }))}
+              />
+              <input
+                className="input"
+                placeholder="UF"
+                maxLength={2}
+                value={form.uf}
+                onChange={(e) => setForm((f) => ({ ...f, uf: e.target.value.toUpperCase() }))}
+              />
+            </div>
+            <select
+              className="select"
+              value={form.disponibilidade}
+              onChange={(e) => setForm((f) => ({ ...f, disponibilidade: e.target.value }))}
+            >
+              {Object.entries(DISPONIBILIDADE_LABEL).map(([v, l]) => (
+                <option key={v} value={v}>
+                  {l}
+                </option>
+              ))}
+            </select>
+            <div>
+              <label className="text-sm font-medium">Habilidades</label>
+              <div className="mt-2 flex gap-2">
+                <input
+                  className="input flex-1"
+                  placeholder="Ex: Excel, atendimento, comunicação"
+                  value={habInput}
+                  onChange={(e) => setHabInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addHabilidade();
+                    }
+                  }}
+                />
+                <button type="button" onClick={addHabilidade} className="btn-ghost shrink-0">
+                  Adicionar
+                </button>
+              </div>
+              {form.habilidades.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {form.habilidades.map((h) => (
+                    <span key={h} className="chip inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs">
+                      {h}
+                      <button type="button" onClick={() => removeHabilidade(h)} className="text-faint hover:text-red-400">
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+            {perfil?.tipo === 'aluno' && (
+              <span className="inline-flex items-center gap-2 rounded-full bg-brand-accent/10 px-3 py-1 text-xs font-medium text-brand-accent">
+                ✓ {site.badgeCertified}
+              </span>
+            )}
+            <button type="submit" className="btn-primary" disabled={saving}>
+              {saving ? 'Salvando…' : 'Salvar perfil'}
+            </button>
+          </form>
+        )}
+
+        {!loading && tab === 'candidaturas' && (
+          <div className="mt-8 space-y-3">
+            {candidaturas.length === 0 ? (
+              <div className="glass-card text-center">
+                <p className="text-muted">Você ainda não se candidatou a nenhuma vaga.</p>
+                <Link to="/vagas" className="btn-primary mt-4 inline-flex text-sm">
+                  Explorar vagas abertas
+                </Link>
+              </div>
+            ) : (
+              candidaturas.map((c) => (
+                <div key={c.id} className="glass-card flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h3 className="font-semibold">{c.vagaTitulo}</h3>
+                    <p className="mt-1 text-sm text-subtle">
+                      {c.empresaNome} · {TIPO_LABEL[c.tipoVaga] || c.tipoVaga}
+                    </p>
+                    <p className="mt-1 text-xs text-faint">
+                      {STATUS_LABEL[c.status] || c.status}
+                      {c.createdAt && ` · ${new Date(c.createdAt).toLocaleDateString('pt-BR')}`}
+                    </p>
+                  </div>
+                  {c.vagaSlug && (
+                    <Link to={`/vagas/${c.vagaSlug}`} className="btn-ghost text-sm">
+                      Ver vaga
+                    </Link>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {!loading && tab === 'notificacoes' && (
+          <div className="mt-8 space-y-3">
+            {notificacoes.length === 0 ? (
+              <div className="glass-card text-center">
+                <p className="text-muted">Nenhuma notificação por enquanto.</p>
+              </div>
+            ) : (
+              notificacoes.map((n) => (
+                <div
+                  key={n.id}
+                  className={`glass-card ${!n.lida ? 'border-brand-accent/30' : ''}`}
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h3 className="font-semibold">{n.titulo}</h3>
+                      <p className="mt-1 text-sm text-muted">{n.mensagem}</p>
+                      {n.createdAt && (
+                        <p className="mt-2 text-xs text-faint">
+                          {new Date(n.createdAt).toLocaleString('pt-BR')}
+                        </p>
+                      )}
+                    </div>
+                    {!n.lida && (
+                      <button type="button" onClick={() => marcarLida(n.id)} className="btn-ghost text-xs">
+                        Marcar como lida
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
     </Layout>
   );

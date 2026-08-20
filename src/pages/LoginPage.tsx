@@ -1,10 +1,12 @@
 import { FormEvent, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { api, saveSession } from '../lib/api';
 
 export function LoginPage() {
   const nav = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: string } | null)?.from;
   const [tipo, setTipo] = useState<'candidato' | 'empresa'>('candidato');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,7 +21,11 @@ export function LoginPage() {
       const fn = tipo === 'candidato' ? api.loginCandidato : api.loginEmpresa;
       const res = await fn(email, password);
       saveSession(res.tokens.accessToken, tipo);
-      nav(tipo === 'candidato' ? '/candidato' : '/empresa');
+      if (from && tipo === 'candidato') {
+        nav(from);
+      } else {
+        nav(tipo === 'candidato' ? '/candidato' : '/empresa');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao entrar');
     } finally {
