@@ -45,15 +45,33 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (state.loading) return;
     document.title = state.nomePortal;
-    const href = state.logoUrl?.trim() || '/favicon.svg';
-    let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-    if (!link) {
-      link = document.createElement('link');
-      link.rel = 'icon';
-      document.head.appendChild(link);
+
+    const svgHref = state.logoUrl?.trim() || images.faviconSvg;
+    const pngHref = state.logoUrl?.trim() || images.faviconPng;
+
+    const setLink = (rel: string, href: string, type: string, key: string) => {
+      let link = document.querySelector<HTMLLinkElement>(`link[data-cj-favicon="${key}"]`);
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = rel;
+        link.dataset.cjFavicon = key;
+        document.head.appendChild(link);
+      }
+      link.type = type;
+      link.href = href;
+    };
+
+    if (state.logoUrl?.trim()) {
+      const href = state.logoUrl.trim();
+      setLink('icon', href, href.endsWith('.svg') ? 'image/svg+xml' : 'image/png', 'brand');
+      document.querySelector('link[data-cj-favicon="png"]')?.remove();
+      document.querySelector('link[data-cj-favicon="svg"]')?.remove();
+    } else {
+      document.querySelector('link[data-cj-favicon="brand"]')?.remove();
+      setLink('icon', svgHref, 'image/svg+xml', 'svg');
+      setLink('icon', pngHref, 'image/png', 'png');
     }
-    link.type = href.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
-    link.href = href;
+    setLink('apple-touch-icon', pngHref, 'image/png', 'apple');
   }, [state.nomePortal, state.logoUrl, state.loading]);
 
   const value = useMemo(() => state, [state]);

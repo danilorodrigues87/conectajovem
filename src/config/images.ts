@@ -16,4 +16,6 @@ export const images = {
     u('photo-1438761681033-6461ffad8d80', 128, 128),
   ],
   heroFallback: '/hero-conect-jovem.svg',
+  faviconSvg: '/logo-favicon.svg',
+  faviconPng: '/logo-favicon.png',
 } as const;
