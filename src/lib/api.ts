@@ -88,9 +88,15 @@ async function authRequest<T>(path: string, options: RequestInit = {}): Promise<
 
 export const api = {
   branding: () =>
-    request<{ branding: { nomePortal: string; textoInstitucional?: string }; sqlOk?: boolean }>(
-      '/conect/public/branding',
-    ),
+    request<{
+      branding: {
+        nomePortal: string;
+        textoInstitucional?: string;
+        heroImageUrl?: string | null;
+        logoUrl?: string | null;
+      };
+      sqlOk?: boolean;
+    }>('/conect/public/branding'),
   vagas: (params: Record<string, string | number | undefined> = {}) => {
     const q = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => {

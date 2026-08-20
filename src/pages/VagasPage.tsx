@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { VagaCard } from '../components/VagaCard';
 import { api, type Cidade, type Empresa, type Vaga } from '../lib/api';
 
 export function VagasPage() {
+  const [searchParams] = useSearchParams();
   const [vagas, setVagas] = useState<Vaga[]>([]);
   const [cidades, setCidades] = useState<Cidade[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [cidade, setCidade] = useState('');
   const [empresa, setEmpresa] = useState('');
-  const [tipo, setTipo] = useState('');
+  const [tipo, setTipo] = useState(() => searchParams.get('tipo') || '');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -17,6 +19,11 @@ export function VagasPage() {
     api.cidades().then((r) => setCidades(r.items || [])).catch(() => {});
     api.empresas().then((r) => setEmpresas(r.items || [])).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    const qTipo = searchParams.get('tipo') || '';
+    setTipo(qTipo);
+  }, [searchParams]);
 
   useEffect(() => {
     setLoading(true);
