@@ -2,6 +2,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { Logo } from './Logo';
 import { ThemeToggle } from './ThemeToggle';
 import { site } from '../config/site';
+import { useBranding } from '../context/BrandingContext';
 import { clearSession, getRole, getToken } from '../lib/api';
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
@@ -11,6 +12,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const token = getToken();
   const role = getRole();
   const logado = !!token && !!role;
+  const { nomePortal, textoInstitucional } = useBranding();
 
   const perfilTo = role === 'empresa' ? '/empresa' : '/candidato';
   const perfilLabel = role === 'empresa' ? 'Área da empresa' : 'Meu perfil';
@@ -27,7 +29,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <Link to="/" className="flex items-center gap-3 font-semibold tracking-tight">
             <Logo className="h-10 w-auto sm:h-11" />
             <div className="hidden leading-tight sm:block">
-              <span className="block text-base">{site.name}</span>
+              <span className="block text-base">{nomePortal}</span>
               <span className="text-[11px] font-normal text-faint">Empregabilidade & talentos</span>
             </div>
           </Link>
@@ -67,8 +69,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-3">
               <Logo className="h-10 w-auto" />
               <div>
-                <div className="font-semibold">{site.name}</div>
-                <p className="mt-1 max-w-xs text-sm text-subtle">{site.description}</p>
+                <div className="font-semibold">{nomePortal}</div>
+                <p className="mt-1 max-w-xs text-sm text-subtle">{textoInstitucional || site.description}</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-8 text-sm text-muted sm:grid-cols-3">

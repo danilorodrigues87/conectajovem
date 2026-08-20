@@ -43,6 +43,31 @@ export type UserEmpresa = {
   status: 'pendente' | 'aprovada' | 'bloqueada' | string;
 };
 
+export type EmpresaPerfil = {
+  id: number;
+  cnpj: string;
+  razaoSocial: string;
+  nomeFantasia: string;
+  whatsapp: string;
+  email: string;
+  contatoNome: string;
+  cidadeId?: number | null;
+  bairro?: string;
+  uf?: string;
+  status: string;
+};
+
+export type CandidaturaEmpresa = Candidatura & {
+  candidatoId: number;
+  candidatoNome: string;
+  candidatoEmail?: string;
+  candidatoWhatsapp?: string;
+  candidatoResumo?: string;
+  candidatoDisponibilidade?: string;
+  candidatoTipo?: string;
+  mensagemEmpresa?: string;
+};
+
 export type UserCandidato = {
   id: number;
   nome: string;
@@ -188,7 +213,13 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
-  meEmpresa: () => authRequest<{ user: UserEmpresa }>('/conect-empresa/me'),
+  meEmpresa: () =>
+    authRequest<{ user: UserEmpresa; empresa: EmpresaPerfil }>('/conect-empresa/me'),
+  atualizarPerfilEmpresa: (payload: Record<string, unknown>) =>
+    authRequest<{ message?: string; user: UserEmpresa; empresa: EmpresaPerfil }>('/conect-empresa/me', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
   meCandidato: () =>
     authRequest<{ user: UserCandidato; candidato: CandidatoPerfil }>('/conect/me'),
   atualizarPerfilCandidato: (payload: Record<string, unknown>) =>
@@ -211,6 +242,37 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
+  atualizarVaga: (id: number, payload: Record<string, unknown>) =>
+    authRequest<{ message?: string; vaga?: Vaga }>(`/conect-empresa/vagas/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
+  vagaAcao: (id: number, acao: 'pausar' | 'retomar' | 'encerrar' | 'moderacao') =>
+    authRequest<{ message?: string; vaga?: Vaga }>(`/conect-empresa/vagas/${id}/acao`, {
+      method: 'POST',
+      body: JSON.stringify({ acao }),
+    }),
+  empresaCandidaturas: (params: { vagaId?: number; status?: string } = {}) => {
+    const q = new URLSearchParams();
+    if (params.vagaId) q.set('vagaId', String(params.vagaId));
+    if (params.status) q.set('status', params.status);
+    const qs = q.toString();
+    return authRequest<{ items: CandidaturaEmpresa[] }>(
+      `/conect-empresa/candidaturas${qs ? `?${qs}` : ''}`,
+    );
+  },
+  empresaCandidaturaDetalhe: (id: number) =>
+    authRequest<{ candidatura: CandidaturaEmpresa; candidato: CandidatoPerfil | null }>(
+      `/conect-empresa/candidaturas/${id}`,
+    ),
+  atualizarCandidaturaEmpresa: (
+    id: number,
+    payload: { status: string; mensagemEmpresa?: string },
+  ) =>
+    authRequest<{ message?: string; candidatura?: CandidaturaEmpresa }>(
+      `/conect-empresa/candidaturas/${id}`,
+      { method: 'PUT', body: JSON.stringify(payload) },
+    ),
 };
 
 export function saveSession(token: string, role: AuthRole) {

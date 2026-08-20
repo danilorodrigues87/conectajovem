@@ -1,26 +1,28 @@
 import { useTheme } from '../context/ThemeContext';
-import { site } from '../config/site';
+import { useBranding } from '../context/BrandingContext';
 
 type LogoProps = {
   className?: string;
 };
 
 /**
- * Logo horizontal (fundo transparente).
- * Prioriza PNG se existir em /public; fallback para SVG por tema.
+ * Logo horizontal. Usa upload do Master quando disponível; fallback para arquivos estáticos.
  */
 export function Logo({ className = 'h-10 w-auto' }: LogoProps) {
   const { theme } = useTheme();
+  const { logoUrl, nomePortal } = useBranding();
   const isDark = theme === 'dark';
   const png = isDark ? '/logo-conect-jovem-dark.png' : '/logo-conect-jovem.png';
   const svg = isDark ? '/logo-conect-jovem-dark.svg' : '/logo-conect-jovem.svg';
+  const src = logoUrl || png;
 
   return (
     <img
-      src={png}
-      alt={site.name}
+      src={src}
+      alt={nomePortal}
       className={`object-contain ${className}`}
       onError={(e) => {
+        if (logoUrl) return;
         const img = e.currentTarget;
         if (img.src.includes('.png')) {
           img.src = svg;
