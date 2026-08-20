@@ -37,20 +37,25 @@ export function LoginPage() {
     <Layout>
       <div className="mx-auto max-w-md px-4 py-16">
         <h1 className="text-2xl font-bold">Entrar</h1>
-        <div className="mt-4 flex gap-2">
+        <p className="mt-3 text-sm text-subtle">
+          {tipo === 'candidato'
+            ? 'Use a conta criada no cadastro do portal ou o mesmo e-mail e senha do portal do aluno (Ascend).'
+            : 'Acesso para empresas parceiras cadastradas no Conecta Jovem.'}
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
             className={`rounded-lg px-4 py-2 text-sm ${tipo === 'candidato' ? 'btn-primary' : 'btn-ghost'}`}
-            onClick={() => setTipo('candidato')}
+            onClick={() => { setTipo('candidato'); setError(''); }}
           >
-            Candidato
+            Candidato / Aluno
           </button>
           <button
             type="button"
             className={`rounded-lg px-4 py-2 text-sm ${tipo === 'empresa' ? 'btn-primary' : 'btn-ghost'}`}
-            onClick={() => setTipo('empresa')}
+            onClick={() => { setTipo('empresa'); setError(''); }}
           >
-            Empresa
+            Empresa parceira
           </button>
         </div>
         <form onSubmit={onSubmit} className="card mt-6 space-y-4">
