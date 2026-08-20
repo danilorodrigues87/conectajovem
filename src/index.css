@@ -199,31 +199,238 @@
   }
 }
 
+.curriculo-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #555;
+  margin: 0 0 0.35rem;
+}
+
+/* ——— Currículo (tela, PDF e impressão) ——— */
+.curriculo-preview-frame {
+  max-width: 210mm;
+  margin: 0 auto;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--cj-border);
+  background: #fff;
+}
+
+.curriculo-sheet {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 210mm;
+  margin: 0 auto;
+  padding: 12mm 14mm;
+  background: #fff !important;
+  color: #111 !important;
+  font-size: 10.5pt;
+  line-height: 1.45;
+}
+
+.curriculo-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #ccc;
+}
+
+.curriculo-foto {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.curriculo-foto-inicial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff3e6;
+  color: #c45a00;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.curriculo-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.curriculo-nome {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #111;
+}
+
+.curriculo-meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: #444;
+}
+
+.curriculo-selo {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #c45a00;
+}
+
+.curriculo-block {
+  margin-top: 0.85rem;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.curriculo-body {
+  margin: 0.25rem 0 0;
+  color: #222;
+}
+
+.curriculo-list {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+  color: #222;
+}
+
+.curriculo-list-spaced {
+  list-style: disc;
+}
+
+.curriculo-list-spaced > li + li {
+  margin-top: 0.5rem;
+}
+
+.curriculo-item-title {
+  font-weight: 600;
+  color: #111;
+}
+
+.curriculo-exp {
+  border-left: 2px solid #f59e0b;
+  padding-left: 0.65rem;
+  list-style: none;
+  margin-left: 0;
+}
+
+/* Clone off-screen para html2pdf (sem scroll/margem da página) */
+.curriculo-export-host {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 210mm;
+  padding: 12mm 14mm;
+  box-sizing: border-box;
+  background: #fff;
+  z-index: -9999;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.curriculo-export-host .curriculo-sheet {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+@page {
+  size: A4 portrait;
+  margin: 12mm 14mm;
+}
+
+.toast-popup {
+  animation: toast-in 0.25s ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.whatsapp-float {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 9999px;
+  background: #25d366;
+  color: #fff;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.whatsapp-float:hover {
+  transform: scale(1.06);
+  box-shadow:
+    0 6px 20px rgba(37, 211, 102, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+}
+
+.whatsapp-float:focus-visible {
+  outline: 2px solid #25d366;
+  outline-offset: 3px;
+}
+
 @media print {
-  body * {
-    visibility: hidden;
+  /* Fallback se alguém usar Ctrl+P na página — preferir botão Imprimir (iframe) */
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
   }
 
-  .curriculo-root,
-  .curriculo-root * {
-    visibility: visible;
-  }
-
-  .curriculo-root {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-  }
-
+  header,
+  footer,
+  main > *:not(:has(.curriculo-root)),
   .no-print {
     display: none !important;
   }
 
-  .curriculo-sheet {
-    box-shadow: none !important;
+  .curriculo-root {
+    position: static !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .curriculo-preview-frame {
+    padding: 0 !important;
     border: none !important;
-    background: white !important;
-    color: #111 !important;
+    max-width: none !important;
+  }
+
+  .curriculo-sheet {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  .curriculo-foto {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }

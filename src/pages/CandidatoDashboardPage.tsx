@@ -1,19 +1,23 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { AddressFields } from '../components/AddressFields';
 import { CurriculoPreview } from '../components/CurriculoPreview';
 import { Layout } from '../components/Layout';
-import { LocationSelect } from '../components/LocationSelect';
+import { Toast } from '../components/Toast';
 import {
   api,
   clearSession,
   type CandidatoPerfil,
   type Candidatura,
+  type ExperienciaProfissional,
+  type FormacaoAcademica,
   type Notificacao,
   type UserCandidato,
 } from '../lib/api';
+import { newExperiencia, newFormacaoAcademica, TIPO_FORMACAO_LABEL } from '../lib/curriculo';
 import { site } from '../config/site';
 
-type Tab = 'perfil' | 'candidaturas' | 'notificacoes';
+type Tab = 'perfil' | 'curriculo' | 'candidaturas' | 'notificacoes';
 
 const TIPO_LABEL: Record<string, string> = {
   aprendiz: 'Jovem Aprendiz',
@@ -53,20 +57,24 @@ export function CandidatoDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [fotoSaving, setFotoSaving] = useState(false);
-  const [showCurriculo, setShowCurriculo] = useState(false);
+  const [sqlAviso, setSqlAviso] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [habInput, setHabInput] = useState('');
   const [form, setForm] = useState({
     nome: '',
     whatsapp: '',
     resumo: '',
+    logradouro: '',
+    numero: '',
     estadoId: '',
     cidadeId: '',
     bairro: '',
     uf: '',
     disponibilidade: 'imediata',
     habilidades: [] as string[],
+    formacaoAcademica: [] as FormacaoAcademica[],
+    experiencias: [] as ExperienciaProfissional[],
   });
 
   const onLocationChange = useCallback(
@@ -84,12 +92,16 @@ export function CandidatoDashboardPage() {
         nome: r.candidato.nome || '',
         whatsapp: r.candidato.whatsapp || '',
         resumo: r.candidato.resumo || '',
-        estadoId: '',
+        logradouro: r.candidato.logradouro || '',
+        numero: r.candidato.numero || '',
+        estadoId: r.candidato.estadoId ? String(r.candidato.estadoId) : '',
         cidadeId: r.candidato.cidadeId ? String(r.candidato.cidadeId) : '',
         bairro: r.candidato.bairro || '',
         uf: r.candidato.uf || '',
         disponibilidade: r.candidato.disponibilidade || 'imediata',
         habilidades: r.candidato.habilidades || [],
+        formacaoAcademica: r.candidato.formacaoAcademica || [],
+        experiencias: r.candidato.experiencias || [],
       });
     });
   }
@@ -110,16 +122,21 @@ export function CandidatoDashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  function showToast(message: string, type: 'success' | 'error' = 'success') {
+    setToast({ message, type });
+  }
+
   async function onFotoChange(file: File | null, opts?: { usarPortal?: boolean; restaurar?: boolean }) {
     setFotoSaving(true);
     setError('');
-    setSuccess('');
     try {
       const res = await api.uploadFotoCandidato(file || undefined, opts);
       if (res.candidato) setPerfil(res.candidato);
-      setSuccess(res.message || 'Foto atualizada.');
+      showToast(res.message || 'Foto atualizada.');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao enviar foto');
+      const msg = err instanceof Error ? err.message : 'Erro ao enviar foto';
+      setError(msg);
+      showToast(msg, 'error');
     } finally {
       setFotoSaving(false);
     }
@@ -127,24 +144,51 @@ export function CandidatoDashboardPage() {
 
   async function onSubmitPerfil(e: FormEvent) {
     e.preventDefault();
+    if (form.estadoId && !form.cidadeId) {
+      const msg = 'Selecione a cidade após escolher o estado.';
+      setError(msg);
+      showToast(msg, 'error');
+      return;
+    }
     setSaving(true);
     setError('');
-    setSuccess('');
+    setSqlAviso('');
     try {
       const res = await api.atualizarPerfilCandidato({
         nome: form.nome,
         whatsapp: form.whatsapp,
         resumo: form.resumo,
+        logradouro: form.logradouro,
+        numero: form.numero,
         cidadeId: form.cidadeId ? Number(form.cidadeId) : null,
         bairro: form.bairro,
         uf: form.uf,
         disponibilidade: form.disponibilidade,
         habilidades: form.habilidades,
+        formacaoAcademica: form.formacaoAcademica,
+        experiencias: form.experiencias,
       });
       setPerfil(res.candidato);
-      setSuccess(res.message || 'Perfil atualizado.');
+      setForm((f) => ({
+        ...f,
+        estadoId: res.candidato.estadoId ? String(res.candidato.estadoId) : f.estadoId,
+        cidadeId: res.candidato.cidadeId ? String(res.candidato.cidadeId) : '',
+        uf: res.candidato.uf || f.uf,
+        logradouro: res.candidato.logradouro || '',
+        numero: res.candidato.numero || '',
+        bairro: res.candidato.bairro || '',
+        formacaoAcademica: res.candidato.formacaoAcademica || [],
+        experiencias: res.candidato.experiencias || [],
+      }));
+      showToast(res.message || 'Perfil salvo com sucesso!');
+      if (res.sqlAviso) {
+        setSqlAviso(res.sqlAviso);
+        showToast(res.sqlAviso, 'error');
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao salvar');
+      const msg = err instanceof Error ? err.message : 'Erro ao salvar';
+      setError(msg);
+      showToast(msg, 'error');
     } finally {
       setSaving(false);
     }
@@ -179,6 +223,9 @@ export function CandidatoDashboardPage() {
 
   return (
     <Layout>
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+      )}
       <div className="mx-auto max-w-5xl px-4 py-10">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -205,6 +252,7 @@ export function CandidatoDashboardPage() {
           {(
             [
               ['perfil', 'Meu perfil'],
+              ['curriculo', 'Meu currículo'],
               ['candidaturas', `Candidaturas (${candidaturas.length})`],
               ['notificacoes', `Notificações${naoLidas ? ` (${naoLidas})` : ''}`],
             ] as const
@@ -224,22 +272,38 @@ export function CandidatoDashboardPage() {
 
         {loading && <p className="mt-8 text-subtle">Carregando…</p>}
         {error && <p className="mt-6 text-sm text-red-400">{error}</p>}
-        {success && <p className="mt-6 text-sm text-emerald-400">{success}</p>}
+        {sqlAviso && (
+          <p className="mt-6 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+            {sqlAviso}
+          </p>
+        )}
+
+        {!loading && tab === 'curriculo' && perfil && (
+          <div className="glass-card mt-8">
+            <div className="no-print">
+              <h2 className="text-lg font-semibold">Meu currículo</h2>
+              <p className="mt-1 text-sm text-muted">
+                Visualize, baixe em PDF ou imprima. Atualize os dados na aba &quot;Meu perfil&quot; antes de gerar o documento.
+              </p>
+            </div>
+            <div className="mt-6 print:mt-0">
+              <CurriculoPreview perfil={perfil} />
+            </div>
+          </div>
+        )}
+
+        {!loading && tab === 'curriculo' && !perfil && (
+          <p className="mt-8 text-muted">Complete seu perfil para gerar o currículo.</p>
+        )}
 
         {!loading && tab === 'perfil' && (
           <>
-            {showCurriculo && perfil && (
-              <div className="glass-card mt-8">
-                <CurriculoPreview perfil={perfil} onClose={() => setShowCurriculo(false)} />
-              </div>
-            )}
-
             {(perfil?.formacao?.length ?? 0) > 0 && (
               <div className="glass-card mt-8">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <h2 className="text-lg font-semibold">Certificados e formação</h2>
                   {perfil && (
-                    <button type="button" className="btn-ghost text-sm" onClick={() => setShowCurriculo(true)}>
+                    <button type="button" className="btn-ghost text-sm" onClick={() => setTab('curriculo')}>
                       Ver currículo completo
                     </button>
                   )}
@@ -334,8 +398,8 @@ export function CandidatoDashboardPage() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-lg font-semibold">Currículo simplificado</h2>
               {perfil && (
-                <button type="button" className="btn-ghost text-sm" onClick={() => setShowCurriculo(true)}>
-                  Ver / imprimir currículo
+                <button type="button" className="btn-ghost text-sm" onClick={() => setTab('curriculo')}>
+                  Ver / baixar currículo
                 </button>
               )}
             </div>
@@ -362,18 +426,221 @@ export function CandidatoDashboardPage() {
               value={form.resumo}
               onChange={(e) => setForm((f) => ({ ...f, resumo: e.target.value }))}
             />
-            <LocationSelect
+            <AddressFields
+              logradouro={form.logradouro}
+              numero={form.numero}
+              bairro={form.bairro}
               estadoId={form.estadoId}
               cidadeId={form.cidadeId}
               uf={form.uf}
-              onChange={onLocationChange}
+              onLogradouro={(v) => setForm((f) => ({ ...f, logradouro: v }))}
+              onNumero={(v) => setForm((f) => ({ ...f, numero: v }))}
+              onBairro={(v) => setForm((f) => ({ ...f, bairro: v }))}
+              onLocation={onLocationChange}
             />
-            <input
-              className="input max-w-md"
-              placeholder="Bairro"
-              value={form.bairro}
-              onChange={(e) => setForm((f) => ({ ...f, bairro: e.target.value }))}
-            />
+
+            <div className="space-y-3 border-t border-edge pt-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label className="text-sm font-medium">Formação acadêmica</label>
+                <button
+                  type="button"
+                  className="btn-ghost text-xs"
+                  onClick={() =>
+                    setForm((f) => ({
+                      ...f,
+                      formacaoAcademica: [...f.formacaoAcademica, newFormacaoAcademica()],
+                    }))
+                  }
+                >
+                  + Adicionar
+                </button>
+              </div>
+              {form.formacaoAcademica.length === 0 && (
+                <p className="text-xs text-subtle">Ex.: Graduação em Administração — Unifatecie (2025)</p>
+              )}
+              {form.formacaoAcademica.map((item, idx) => (
+                <div key={item.id} className="grid gap-2 rounded-xl border border-edge p-3 md:grid-cols-2">
+                  <select
+                    className="select md:col-span-2"
+                    value={item.tipo}
+                    onChange={(e) =>
+                      setForm((f) => {
+                        const list = [...f.formacaoAcademica];
+                        list[idx] = { ...list[idx], tipo: e.target.value as FormacaoAcademica['tipo'] };
+                        return { ...f, formacaoAcademica: list };
+                      })
+                    }
+                  >
+                    {Object.entries(TIPO_FORMACAO_LABEL).map(([v, l]) => (
+                      <option key={v} value={v}>
+                        {l}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    className="input"
+                    placeholder="Curso *"
+                    value={item.curso}
+                    onChange={(e) =>
+                      setForm((f) => {
+                        const list = [...f.formacaoAcademica];
+                        list[idx] = { ...list[idx], curso: e.target.value };
+                        return { ...f, formacaoAcademica: list };
+                      })
+                    }
+                  />
+                  <input
+                    className="input"
+                    placeholder="Instituição"
+                    value={item.instituicao}
+                    onChange={(e) =>
+                      setForm((f) => {
+                        const list = [...f.formacaoAcademica];
+                        list[idx] = { ...list[idx], instituicao: e.target.value };
+                        return { ...f, formacaoAcademica: list };
+                      })
+                    }
+                  />
+                  <input
+                    className="input"
+                    type="number"
+                    min={1950}
+                    max={2100}
+                    placeholder="Ano conclusão"
+                    value={item.anoConclusao ?? ''}
+                    onChange={(e) =>
+                      setForm((f) => {
+                        const list = [...f.formacaoAcademica];
+                        list[idx] = {
+                          ...list[idx],
+                          anoConclusao: e.target.value ? Number(e.target.value) : null,
+                        };
+                        return { ...f, formacaoAcademica: list };
+                      })
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="btn-ghost text-xs text-red-300 md:col-span-2 md:justify-self-start"
+                    onClick={() =>
+                      setForm((f) => ({
+                        ...f,
+                        formacaoAcademica: f.formacaoAcademica.filter((x) => x.id !== item.id),
+                      }))
+                    }
+                  >
+                    Remover
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3 border-t border-edge pt-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label className="text-sm font-medium">Experiência profissional</label>
+                <button
+                  type="button"
+                  className="btn-ghost text-xs"
+                  onClick={() =>
+                    setForm((f) => ({ ...f, experiencias: [...f.experiencias, newExperiencia()] }))
+                  }
+                >
+                  + Adicionar
+                </button>
+              </div>
+              {form.experiencias.map((exp, idx) => (
+                <div key={exp.id} className="grid gap-2 rounded-xl border border-edge p-3 md:grid-cols-2">
+                  <input
+                    className="input"
+                    placeholder="Empresa *"
+                    value={exp.empresa}
+                    onChange={(e) =>
+                      setForm((f) => {
+                        const list = [...f.experiencias];
+                        list[idx] = { ...list[idx], empresa: e.target.value };
+                        return { ...f, experiencias: list };
+                      })
+                    }
+                  />
+                  <input
+                    className="input"
+                    placeholder="Cargo *"
+                    value={exp.cargo}
+                    onChange={(e) =>
+                      setForm((f) => {
+                        const list = [...f.experiencias];
+                        list[idx] = { ...list[idx], cargo: e.target.value };
+                        return { ...f, experiencias: list };
+                      })
+                    }
+                  />
+                  <input
+                    className="input"
+                    type="month"
+                    value={exp.inicio || ''}
+                    onChange={(e) =>
+                      setForm((f) => {
+                        const list = [...f.experiencias];
+                        list[idx] = { ...list[idx], inicio: e.target.value };
+                        return { ...f, experiencias: list };
+                      })
+                    }
+                  />
+                  <input
+                    className="input"
+                    type="month"
+                    disabled={exp.atual}
+                    value={exp.fim || ''}
+                    onChange={(e) =>
+                      setForm((f) => {
+                        const list = [...f.experiencias];
+                        list[idx] = { ...list[idx], fim: e.target.value };
+                        return { ...f, experiencias: list };
+                      })
+                    }
+                  />
+                  <label className="flex items-center gap-2 text-sm md:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={!!exp.atual}
+                      onChange={(e) =>
+                        setForm((f) => {
+                          const list = [...f.experiencias];
+                          list[idx] = { ...list[idx], atual: e.target.checked, fim: e.target.checked ? null : list[idx].fim };
+                          return { ...f, experiencias: list };
+                        })
+                      }
+                    />
+                    Trabalho atual
+                  </label>
+                  <textarea
+                    className="input min-h-[70px] resize-y md:col-span-2"
+                    placeholder="Atividades principais (opcional)"
+                    value={exp.descricao || ''}
+                    onChange={(e) =>
+                      setForm((f) => {
+                        const list = [...f.experiencias];
+                        list[idx] = { ...list[idx], descricao: e.target.value };
+                        return { ...f, experiencias: list };
+                      })
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="btn-ghost text-xs text-red-300 md:col-span-2 md:justify-self-start"
+                    onClick={() =>
+                      setForm((f) => ({
+                        ...f,
+                        experiencias: f.experiencias.filter((x) => x.id !== exp.id),
+                      }))
+                    }
+                  >
+                    Remover
+                  </button>
+                </div>
+              ))}
+            </div>
+
             <select
               className="select"
               value={form.disponibilidade}

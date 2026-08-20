@@ -5,6 +5,7 @@ import { api } from '../lib/api';
 
 export function CadastroEmpresaPage() {
   const [ok, setOk] = useState(false);
+  const [okMessage, setOkMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -26,7 +27,11 @@ export function CadastroEmpresaPage() {
     setLoading(true);
     setError('');
     try {
-      await api.registerEmpresa(form);
+      const res = await api.registerEmpresa(form);
+      setOkMessage(
+        res.message ||
+          'Cadastro concluído! CNPJ validado — sua empresa já está aprovada para publicar vagas.',
+      );
       setOk(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro no cadastro');
@@ -39,9 +44,14 @@ export function CadastroEmpresaPage() {
     return (
       <Layout>
         <div className="mx-auto max-w-lg px-4 py-16 text-center">
-          <h1 className="text-2xl font-bold">Cadastro recebido!</h1>
-          <p className="mt-4 text-muted">Nossa equipe vai analisar os dados da empresa. Você receberá acesso após aprovação.</p>
-          <Link to="/" className="btn-primary mt-8 inline-flex">Voltar ao início</Link>
+          <h1 className="text-2xl font-bold">Cadastro concluído!</h1>
+          <p className="mt-4 text-muted">{okMessage}</p>
+          <Link to="/login" className="btn-primary mt-8 inline-flex">
+            Fazer login
+          </Link>
+          <Link to="/" className="btn-ghost mt-4 inline-flex text-sm">
+            Voltar ao início
+          </Link>
         </div>
       </Layout>
     );
@@ -51,6 +61,9 @@ export function CadastroEmpresaPage() {
     <Layout>
       <div className="mx-auto max-w-lg px-4 py-12">
         <h1 className="text-2xl font-bold">Cadastrar empresa parceira</h1>
+        <p className="mt-2 text-sm text-muted">
+          Empresas com CNPJ válido são aprovadas automaticamente e já podem publicar vagas após o cadastro.
+        </p>
         <form onSubmit={onSubmit} className="card mt-6 space-y-4">
           <input className="input" placeholder="CNPJ (somente números)" value={form.cnpj} onChange={(e) => set('cnpj', e.target.value)} required />
           <input className="input" placeholder="Razão social" value={form.razaoSocial} onChange={(e) => set('razaoSocial', e.target.value)} required />
@@ -60,7 +73,7 @@ export function CadastroEmpresaPage() {
           <input className="input" type="password" placeholder="Senha" value={form.password} onChange={(e) => set('password', e.target.value)} required minLength={6} />
           <input className="input" placeholder="WhatsApp comercial" value={form.whatsapp} onChange={(e) => set('whatsapp', e.target.value)} />
           {error && <p className="text-sm text-red-500 dark:text-red-400">{error}</p>}
-          <button className="btn-primary w-full" disabled={loading}>{loading ? 'Enviando…' : 'Solicitar cadastro'}</button>
+          <button className="btn-primary w-full" disabled={loading}>{loading ? 'Enviando…' : 'Cadastrar empresa'}</button>
         </form>
       </div>
     </Layout>

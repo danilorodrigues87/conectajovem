@@ -56,8 +56,13 @@ export type EmpresaPerfil = {
   email: string;
   contatoNome: string;
   cidadeId?: number | null;
+  cidadeNome?: string;
+  estadoId?: number | null;
+  logradouro?: string;
+  numero?: string;
   bairro?: string;
   uf?: string;
+  endereco?: string;
   status: string;
   logoUrl?: string | null;
 };
@@ -82,6 +87,24 @@ export type UserCandidato = {
   tipo: string;
 };
 
+export type FormacaoAcademica = {
+  id: string;
+  tipo: 'graduacao' | 'pos' | 'tecnico' | 'outro';
+  curso: string;
+  instituicao: string;
+  anoConclusao?: number | null;
+};
+
+export type ExperienciaProfissional = {
+  id: string;
+  empresa: string;
+  cargo: string;
+  inicio?: string | null;
+  fim?: string | null;
+  atual?: boolean;
+  descricao?: string;
+};
+
 export type CandidatoPerfil = {
   id: number;
   nome: string;
@@ -89,13 +112,20 @@ export type CandidatoPerfil = {
   whatsapp: string;
   resumo: string;
   cidadeId?: number | null;
+  cidadeNome?: string;
+  estadoId?: number | null;
+  logradouro?: string;
+  numero?: string;
   bairro?: string;
   uf?: string;
+  endereco?: string;
   disponibilidade: string;
   tipo: string;
   fotoUrl?: string | null;
   habilidades: string[];
   formacao: FormacaoCandidato[];
+  formacaoAcademica?: FormacaoAcademica[];
+  experiencias?: ExperienciaProfissional[];
   temSeloCertificado: boolean;
 };
 
@@ -261,7 +291,7 @@ export const api = {
   meCandidato: () =>
     authRequest<{ user: UserCandidato; candidato: CandidatoPerfil }>('/conect/me'),
   atualizarPerfilCandidato: (payload: Record<string, unknown>) =>
-    authRequest<{ message?: string; candidato: CandidatoPerfil }>('/conect/me', {
+    authRequest<{ message?: string; sqlAviso?: string; candidato: CandidatoPerfil }>('/conect/me', {
       method: 'PUT',
       body: JSON.stringify(payload),
     }),

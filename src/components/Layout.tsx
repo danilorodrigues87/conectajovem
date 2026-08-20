@@ -1,6 +1,7 @@
 import { Link, NavLink } from 'react-router-dom';
 import { Logo } from './Logo';
 import { ThemeToggle } from './ThemeToggle';
+import { WhatsAppFloat } from './WhatsAppFloat';
 import { site } from '../config/site';
 import { useBranding } from '../context/BrandingContext';
 import { clearSession, getRole, getToken } from '../lib/api';
@@ -37,6 +38,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <NavLink to="/vagas" className={navClass}>Vagas</NavLink>
             <NavLink to="/empresas" className={navClass}>Empresas parceiras</NavLink>
             <NavLink to="/como-funciona" className={navClass}>Como funciona</NavLink>
+            <NavLink to="/contato" className={navClass}>Contato</NavLink>
           </nav>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -91,6 +93,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <div>
                 <div className="mb-2 font-medium">Institucional</div>
                 <Link to="/como-funciona" className="block hover:text-[var(--cj-text)]">Como funciona</Link>
+                <Link to="/contato" className="block hover:text-[var(--cj-text)]">Contato</Link>
                 <a href={`https://${site.domain}`} className="block hover:text-[var(--cj-text)]">{site.domain}</a>
               </div>
             </div>
@@ -98,6 +101,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <p className="mt-10 border-t border-edge pt-6 text-center text-xs text-faint">{site.footer}</p>
         </div>
       </footer>
+      <WhatsAppFloat />
     </div>
   );
 }

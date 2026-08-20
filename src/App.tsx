@@ -7,6 +7,7 @@ import { LoginPage } from './pages/LoginPage';
 import { CadastroCandidatoPage } from './pages/CadastroCandidatoPage';
 import { CadastroEmpresaPage } from './pages/CadastroEmpresaPage';
 import { ComoFuncionaPage } from './pages/ComoFuncionaPage';
+import { ContatoPage } from './pages/ContatoPage';
 import { CandidatoDashboardPage } from './pages/CandidatoDashboardPage';
 import { EmpresaDashboardPage } from './pages/EmpresaDashboardPage';
 import { getRole, getToken } from './lib/api';
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/vagas/:slug" element={<VagaDetalhePage />} />
         <Route path="/empresas" element={<EmpresasPage />} />
         <Route path="/como-funciona" element={<ComoFuncionaPage />} />
+        <Route path="/contato" element={<ContatoPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/cadastro" element={<CadastroCandidatoPage />} />
         <Route path="/cadastro/empresa" element={<CadastroEmpresaPage />} />

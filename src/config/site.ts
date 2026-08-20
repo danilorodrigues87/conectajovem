@@ -197,7 +197,28 @@ export const site = {
   },
   footer:
     '© Conecta Jovem — Plataforma de empregabilidade. Escolas e empresas parceiras.',
+  contact: {
+    email: 'ctieducacional@gmail.com',
+    whatsapp: '15998464457',
+    whatsappDisplay: '(15) 99846-4457',
+    orgName: 'Centro de Tecnologia e Inovação Educacional (CTI)',
+    orgUrl: 'https://ctieducacional.com.br',
+  },
   badgeCertified: 'Aluno certificado',
   about:
     'O Conecta Jovem é a plataforma que conecta jovens talentos a empresas parceiras, com o apoio de escolas parceiras que enriquecem perfis com formação verificada.',
 } as const;
+
+export function contactWhatsAppUrl(message?: string): string {
+  const digits = site.contact.whatsapp.replace(/\D/g, '');
+  const url = `https://wa.me/55${digits}`;
+  return message ? `${url}?text=${encodeURIComponent(message)}` : url;
+}
+
+export function contactMailtoUrl(subject: string, body: string): string {
+  const params = new URLSearchParams();
+  if (subject) params.set('subject', subject);
+  if (body) params.set('body', body);
+  const qs = params.toString();
+  return `mailto:${site.contact.email}${qs ? `?${qs}` : ''}`;
+}

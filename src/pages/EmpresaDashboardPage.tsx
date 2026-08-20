@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CurriculoPreview } from '../components/CurriculoPreview';
+import { AddressFields } from '../components/AddressFields';
+import { CurriculoView } from '../components/CurriculoView';
 import { Layout } from '../components/Layout';
 import { LocationSelect } from '../components/LocationSelect';
 import {
@@ -89,11 +90,14 @@ export function EmpresaDashboardPage() {
     candidatura: CandidaturaEmpresa;
     candidato: CandidatoPerfil | null;
   } | null>(null);
+  const [detalheTalento, setDetalheTalento] = useState<CandidatoPerfil | null>(null);
   const [perfilForm, setPerfilForm] = useState({
     nomeFantasia: '',
     contatoNome: '',
     whatsapp: '',
     email: '',
+    logradouro: '',
+    numero: '',
     estadoId: '',
     cidadeId: '',
     bairro: '',
@@ -158,7 +162,9 @@ export function EmpresaDashboardPage() {
         contatoNome: r.empresa.contatoNome || '',
         whatsapp: r.empresa.whatsapp || '',
         email: r.empresa.email || '',
-        estadoId: '',
+        logradouro: r.empresa.logradouro || '',
+        numero: r.empresa.numero || '',
+        estadoId: r.empresa.estadoId ? String(r.empresa.estadoId) : '',
         cidadeId: r.empresa.cidadeId ? String(r.empresa.cidadeId) : '',
         bairro: r.empresa.bairro || '',
         uf: r.empresa.uf || '',
@@ -202,6 +208,18 @@ export function EmpresaDashboardPage() {
       loadTalentos().catch((e) => flash(e instanceof Error ? e.message : 'Erro', true));
     }
   }, [tab, user?.status]);
+
+  useEffect(() => {
+    if (tab !== 'candidaturas') setDetalheCand(null);
+    if (tab !== 'talentos') setDetalheTalento(null);
+  }, [tab]);
+
+  function abrirTalento(c: CandidatoPerfil) {
+    setDetalheTalento(c);
+    // #region agent log
+    fetch('http://127.0.0.1:7299/ingest/c2f3b05d-73bd-477d-8214-a3a1d104df4e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6b4d05'},body:JSON.stringify({sessionId:'6b4d05',runId:'post-fix-talentos',hypothesisId:'H1',location:'EmpresaDashboardPage.tsx:abrirTalento',message:'talento selected',data:{id:c.id,nome:c.nome,hasResumo:!!c.resumo,habilidades:c.habilidades?.length??0},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+  }
 
   function openNovaVaga() {
     setEditVagaId(null);
@@ -273,8 +291,14 @@ export function EmpresaDashboardPage() {
     try {
       const r = await api.empresaCandidaturaDetalhe(id);
       setDetalheCand(r);
+      // #region agent log
+      fetch('http://127.0.0.1:7299/ingest/c2f3b05d-73bd-477d-8214-a3a1d104df4e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6b4d05'},body:JSON.stringify({sessionId:'6b4d05',runId:'post-fix-empresa',hypothesisId:'H2',location:'EmpresaDashboardPage.tsx:abrirCandidatura',message:'candidatura loaded',data:{id,hasCandidato:!!r.candidato,candidatoNome:r.candidato?.nome||r.candidatura?.candidatoNome},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       await loadCandidaturas();
     } catch (err) {
+      // #region agent log
+      fetch('http://127.0.0.1:7299/ingest/c2f3b05d-73bd-477d-8214-a3a1d104df4e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6b4d05'},body:JSON.stringify({sessionId:'6b4d05',runId:'post-fix-empresa',hypothesisId:'H2',location:'EmpresaDashboardPage.tsx:abrirCandidatura',message:'candidatura error',data:{id,err:err instanceof Error?err.message:String(err)},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       flash(err instanceof Error ? err.message : 'Erro', true);
     } finally {
       setSaving(false);
@@ -322,12 +346,26 @@ export function EmpresaDashboardPage() {
         contatoNome: perfilForm.contatoNome,
         whatsapp: perfilForm.whatsapp,
         email: perfilForm.email,
+        logradouro: perfilForm.logradouro,
+        numero: perfilForm.numero,
         cidadeId: perfilForm.cidadeId ? Number(perfilForm.cidadeId) : undefined,
         bairro: perfilForm.bairro,
         uf: perfilForm.uf,
       });
       setUser(res.user);
       setEmpresa(res.empresa);
+      // #region agent log
+      fetch('http://127.0.0.1:7299/ingest/c2f3b05d-73bd-477d-8214-a3a1d104df4e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6b4d05'},body:JSON.stringify({sessionId:'6b4d05',runId:'post-fix-empresa',hypothesisId:'H1',location:'EmpresaDashboardPage.tsx:onSubmitPerfil',message:'perfil saved',data:{userStatus:res.user?.status,empresaStatus:res.empresa?.status},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      setPerfilForm((f) => ({
+        ...f,
+        estadoId: res.empresa.estadoId ? String(res.empresa.estadoId) : f.estadoId,
+        cidadeId: res.empresa.cidadeId ? String(res.empresa.cidadeId) : '',
+        uf: res.empresa.uf || f.uf,
+        logradouro: res.empresa.logradouro || '',
+        numero: res.empresa.numero || '',
+        bairro: res.empresa.bairro || '',
+      }));
       flash(res.message || 'Perfil atualizado.');
     } catch (err) {
       flash(err instanceof Error ? err.message : 'Erro ao salvar', true);
@@ -635,8 +673,8 @@ export function EmpresaDashboardPage() {
                       <p className="text-sm text-emerald-300">✓ Formação verificada (selo certificado)</p>
                     )}
                     {detalheCand.candidato && (
-                      <div className="rounded-xl border border-edge p-4">
-                        <CurriculoPreview perfil={detalheCand.candidato} />
+                      <div className="rounded-xl border border-edge p-2">
+                        <CurriculoView perfil={detalheCand.candidato} />
                       </div>
                     )}
                     <div className="flex flex-wrap gap-2">
@@ -723,10 +761,70 @@ export function EmpresaDashboardPage() {
                   type="button"
                   className="btn-primary mt-4 text-sm"
                   disabled={buscandoTalentos}
-                  onClick={() => loadTalentos().catch((e) => flash(e instanceof Error ? e.message : 'Erro', true))}
+                  onClick={() => {
+                    setDetalheTalento(null);
+                    loadTalentos().catch((e) => flash(e instanceof Error ? e.message : 'Erro', true));
+                  }}
                 >
                   {buscandoTalentos ? 'Buscando…' : 'Buscar candidatos'}
                 </button>
+
+                {detalheTalento && (
+                  <div className="glass-card mt-6 space-y-4 border border-brand-accent/20">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        {detalheTalento.fotoUrl ? (
+                          <img
+                            src={detalheTalento.fotoUrl}
+                            alt=""
+                            className="h-14 w-14 rounded-xl object-cover ring-1 ring-[var(--cj-border)]"
+                          />
+                        ) : (
+                          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-brand-accent/10 font-bold text-brand-accent">
+                            {(detalheTalento.nome || '?').charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="text-lg font-semibold">{detalheTalento.nome}</h3>
+                          <p className="text-sm text-subtle">
+                            {[detalheTalento.email, detalheTalento.cidadeNome, detalheTalento.uf]
+                              .filter(Boolean)
+                              .join(' · ')}
+                          </p>
+                        </div>
+                      </div>
+                      <button type="button" className="btn-ghost text-xs" onClick={() => setDetalheTalento(null)}>
+                        Fechar
+                      </button>
+                    </div>
+                    {detalheTalento.resumo && <p className="text-sm text-muted">{detalheTalento.resumo}</p>}
+                    {detalheTalento.habilidades.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {detalheTalento.habilidades.map((h) => (
+                          <span key={h} className="rounded-full bg-white/10 px-2 py-0.5 text-xs">
+                            {h}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {detalheTalento.temSeloCertificado && (
+                      <p className="text-sm text-emerald-300">✓ Formação verificada (selo certificado)</p>
+                    )}
+                    <div className="rounded-xl border border-edge p-2">
+                      <CurriculoView perfil={detalheTalento} />
+                    </div>
+                    {waLink(detalheTalento.whatsapp) && (
+                      <a
+                        href={waLink(detalheTalento.whatsapp)!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-primary text-sm"
+                      >
+                        WhatsApp
+                      </a>
+                    )}
+                  </div>
+                )}
 
                 <div className="mt-6 space-y-3">
                   {talentos.length === 0 ? (
@@ -735,7 +833,14 @@ export function EmpresaDashboardPage() {
                     </div>
                   ) : (
                     talentos.map((c) => (
-                      <div key={c.id} className="glass-card">
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => abrirTalento(c)}
+                        className={`glass-card w-full text-left transition hover:border-brand-accent/30 ${
+                          detalheTalento?.id === c.id ? 'border-brand-accent/40' : ''
+                        }`}
+                      >
                         <div className="flex flex-wrap items-start gap-3">
                           {c.fotoUrl ? (
                             <img
@@ -765,7 +870,7 @@ export function EmpresaDashboardPage() {
                             )}
                           </div>
                         </div>
-                      </div>
+                      </button>
                     ))
                   )}
                 </div>
@@ -845,20 +950,18 @@ export function EmpresaDashboardPage() {
                   value={perfilForm.email}
                   onChange={(e) => setPerfilForm((f) => ({ ...f, email: e.target.value }))}
                 />
-                <div className="grid gap-4">
-                  <LocationSelect
-                    estadoId={perfilForm.estadoId}
-                    cidadeId={perfilForm.cidadeId}
-                    uf={perfilForm.uf}
-                    onChange={onPerfilLocationChange}
-                  />
-                  <input
-                    className="input max-w-md"
-                    placeholder="Bairro"
-                    value={perfilForm.bairro}
-                    onChange={(e) => setPerfilForm((f) => ({ ...f, bairro: e.target.value }))}
-                  />
-                </div>
+                <AddressFields
+                  logradouro={perfilForm.logradouro}
+                  numero={perfilForm.numero}
+                  bairro={perfilForm.bairro}
+                  estadoId={perfilForm.estadoId}
+                  cidadeId={perfilForm.cidadeId}
+                  uf={perfilForm.uf}
+                  onLogradouro={(v) => setPerfilForm((f) => ({ ...f, logradouro: v }))}
+                  onNumero={(v) => setPerfilForm((f) => ({ ...f, numero: v }))}
+                  onBairro={(v) => setPerfilForm((f) => ({ ...f, bairro: v }))}
+                  onLocation={onPerfilLocationChange}
+                />
                 <button type="submit" className="btn-primary" disabled={saving}>
                   {saving ? 'Salvando…' : 'Salvar perfil'}
                 </button>

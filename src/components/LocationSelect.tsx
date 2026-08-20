@@ -36,6 +36,14 @@ export function LocationSelect({
   }, [estados, uf, estadoId]);
 
   useEffect(() => {
+    if (!estadoId || !cidades.length || !cidadeId) return;
+    if (!cidades.some((c) => String(c.id) === String(cidadeId))) {
+      onChange({ estadoId, cidadeId: '', uf });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [estados, cidades, cidadeId, estadoId]);
+
+  useEffect(() => {
     if (!estadoId) {
       setCidades([]);
       return;
@@ -64,8 +72,8 @@ export function LocationSelect({
         <select className="select w-full" value={estadoId} onChange={(e) => onEstadoChange(e.target.value)}>
           <option value="">Selecione o estado</option>
           {estados.map((e) => (
-            <option key={e.id} value={e.id}>
-              {e.nome} ({e.uf})
+            <option key={e.id} value={String(e.id)}>
+              {e.uf ? `${e.uf} — ${e.nome}` : e.nome}
             </option>
           ))}
         </select>
@@ -81,7 +89,7 @@ export function LocationSelect({
         >
           <option value="">{loadingCidades ? 'Carregando…' : 'Selecione a cidade'}</option>
           {cidades.map((c) => (
-            <option key={c.id} value={c.id}>
+            <option key={c.id} value={String(c.id)}>
               {c.nome}
             </option>
           ))}
