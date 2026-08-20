@@ -37,6 +37,12 @@ const DISPONIBILIDADE_LABEL: Record<string, string> = {
   a_combinar: 'A combinar',
 };
 
+const FORMACAO_ORIGEM: Record<string, string> = {
+  manual: 'Certificado emitido pela escola parceira',
+  matricula_auto: 'Matrícula certificada',
+  lms_auto: 'Progresso no portal EAD (referência)',
+};
+
 export function CandidatoDashboardPage() {
   const [tab, setTab] = useState<Tab>('perfil');
   const [user, setUser] = useState<UserCandidato | null>(null);
@@ -154,6 +160,11 @@ export function CandidatoDashboardPage() {
             <p className="badge mb-2">Área do candidato</p>
             <h1 className="text-2xl font-bold md:text-3xl">Olá, {user?.nome || '…'}</h1>
             <p className="mt-1 text-muted">Gerencie seu perfil, candidaturas e notificações no {site.name}.</p>
+            {perfil?.temSeloCertificado && (
+              <span className="mt-3 inline-flex items-center gap-2 rounded-full bg-brand-accent/10 px-3 py-1 text-xs font-medium text-brand-accent">
+                ✓ {site.badgeCertified}
+              </span>
+            )}
           </div>
           <div className="flex gap-2">
             <Link to="/vagas" className="btn-ghost text-sm">
@@ -191,6 +202,34 @@ export function CandidatoDashboardPage() {
         {success && <p className="mt-6 text-sm text-emerald-400">{success}</p>}
 
         {!loading && tab === 'perfil' && (
+          <>
+            {(perfil?.formacao?.length ?? 0) > 0 && (
+              <div className="glass-card mt-8">
+                <h2 className="text-lg font-semibold">Formação verificada</h2>
+                <p className="mt-1 text-sm text-muted">
+                  Certificados oficiais emitidos pela escola parceira no painel. Progresso EAD aparece como referência.
+                </p>
+                <ul className="mt-4 space-y-3">
+                  {perfil!.formacao.map((f) => (
+                    <li key={f.id} className="flex flex-wrap items-start justify-between gap-2 border-t border-edge pt-3 first:border-0 first:pt-0">
+                      <div>
+                        <div className="font-medium">{f.titulo}</div>
+                        <p className="mt-0.5 text-xs text-subtle">
+                          {FORMACAO_ORIGEM[f.origem] || f.origem}
+                          {f.cargaH ? ` · ${f.cargaH}h` : ''}
+                          {f.concluidoEm ? ` · ${new Date(f.concluidoEm).toLocaleDateString('pt-BR')}` : ''}
+                        </p>
+                      </div>
+                      {f.seloCertificado && f.status === 'concluido' && (
+                        <span className="rounded-full bg-brand-accent/10 px-2.5 py-0.5 text-xs font-medium text-brand-accent">
+                          ✓ {site.badgeCertified}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           <form onSubmit={onSubmitPerfil} className="glass-card mt-8 space-y-4">
             <h2 className="text-lg font-semibold">Currículo simplificado</h2>
             <p className="text-sm text-muted">
@@ -286,15 +325,16 @@ export function CandidatoDashboardPage() {
                 </div>
               )}
             </div>
-            {perfil?.tipo === 'aluno' && (
-              <span className="inline-flex items-center gap-2 rounded-full bg-brand-accent/10 px-3 py-1 text-xs font-medium text-brand-accent">
-                ✓ {site.badgeCertified}
-              </span>
+            {perfil?.temSeloCertificado && (
+              <p className="text-sm text-subtle">
+                Seu perfil exibe o selo <strong className="text-brand-accent">{site.badgeCertified}</strong> para empresas parceiras.
+              </p>
             )}
             <button type="submit" className="btn-primary" disabled={saving}>
               {saving ? 'Salvando…' : 'Salvar perfil'}
             </button>
           </form>
+          </>
         )}
 
         {!loading && tab === 'candidaturas' && (

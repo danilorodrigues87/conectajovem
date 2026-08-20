@@ -64,6 +64,18 @@ export type CandidatoPerfil = {
   disponibilidade: string;
   tipo: string;
   habilidades: string[];
+  formacao: FormacaoCandidato[];
+  temSeloCertificado: boolean;
+};
+
+export type FormacaoCandidato = {
+  id: number;
+  titulo: string;
+  origem: string;
+  status: string;
+  cargaH?: number | null;
+  seloCertificado: boolean;
+  concluidoEm?: string;
 };
 
 export type Candidatura = {
