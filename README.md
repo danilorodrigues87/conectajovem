@@ -44,4 +44,4 @@ Módulo escola: `/painel/conect`
 Detalhes: `DEPLOY.md`
 
 - Domínio: `conectajovem.com.br`
-- API: `https://admin.ctieducacional.com.br/app/api/v1`
+- API: `https://admin.ctieducacional.com.br/api/v1`

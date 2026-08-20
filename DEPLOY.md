@@ -36,4 +36,4 @@ git push
 
 - https://conectajovem.com.br/
 - https://conectajovem.com.br/vagas
-- https://admin.ctieducacional.com.br/app/api/v1/conect/public/branding
+- https://admin.ctieducacional.com.br/api/v1/conect/public/branding

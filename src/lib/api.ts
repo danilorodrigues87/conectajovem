@@ -55,9 +55,16 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
         ...(options.headers || {}),
       },
     });
-  } catch {
+  } catch (err) {
+    const isDev = import.meta.env.DEV;
+    if (isDev) {
+      throw new Error(
+        'Não foi possível conectar à API. Verifique se o Apache (XAMPP) está rodando e use npm run dev.',
+      );
+    }
+    console.error('API fetch failed:', `${API}${path}`, err);
     throw new Error(
-      'Não foi possível conectar à API. Verifique se o Apache (XAMPP) está rodando e acesse o site via npm run dev.',
+      'Não foi possível conectar à API. Verifique CONECT_CORS_ORIGINS no painel e se o backend foi publicado.',
     );
   }
   const data = await res.json().catch(() => ({}));
