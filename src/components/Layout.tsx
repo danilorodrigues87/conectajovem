@@ -2,11 +2,24 @@ import { Link, NavLink } from 'react-router-dom';
 import { Logo } from './Logo';
 import { ThemeToggle } from './ThemeToggle';
 import { site } from '../config/site';
+import { clearSession, getRole, getToken } from '../lib/api';
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
   isActive ? 'nav-link nav-link-active' : 'nav-link';
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const token = getToken();
+  const role = getRole();
+  const logado = !!token && !!role;
+
+  const perfilTo = role === 'empresa' ? '/empresa' : '/candidato';
+  const perfilLabel = role === 'empresa' ? 'Área da empresa' : 'Meu perfil';
+
+  function logout() {
+    clearSession();
+    window.location.href = '/';
+  }
+
   return (
     <div className="min-h-screen bg-mesh">
       <header className="surface-header sticky top-0 z-50 border-b backdrop-blur-xl">
@@ -25,12 +38,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </nav>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Link to="/login" className="btn-ghost hidden sm:inline-flex">
-              Entrar
-            </Link>
-            <Link to="/cadastro" className="btn-primary text-sm sm:text-base">
-              Quero me candidatar
-            </Link>
+            {logado ? (
+              <>
+                <Link to={perfilTo} className="btn-primary text-sm sm:text-base">
+                  {perfilLabel}
+                </Link>
+                <button type="button" onClick={logout} className="btn-ghost hidden sm:inline-flex text-sm">
+                  Sair
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="btn-ghost hidden sm:inline-flex">
+                  Entrar
+                </Link>
+                <Link to="/cadastro" className="btn-primary text-sm sm:text-base">
+                  Quero me candidatar
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -49,12 +75,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <div>
                 <div className="mb-2 font-medium">Candidatos</div>
                 <Link to="/vagas" className="block hover:text-[var(--cj-text)]">Vagas</Link>
-                <Link to="/cadastro" className="block hover:text-[var(--cj-text)]">Criar perfil</Link>
+                <Link to={logado && role === 'candidato' ? '/candidato' : '/cadastro'} className="block hover:text-[var(--cj-text)]">
+                  {logado && role === 'candidato' ? 'Meu perfil' : 'Criar perfil'}
+                </Link>
               </div>
               <div>
                 <div className="mb-2 font-medium">Empresas</div>
                 <Link to="/cadastro/empresa" className="block hover:text-[var(--cj-text)]">Cadastrar empresa</Link>
-                <Link to="/login" className="block hover:text-[var(--cj-text)]">Área empresa</Link>
+                <Link to={logado && role === 'empresa' ? '/empresa' : '/login'} className="block hover:text-[var(--cj-text)]">
+                  {logado && role === 'empresa' ? 'Área da empresa' : 'Entrar como empresa'}
+                </Link>
               </div>
               <div>
                 <div className="mb-2 font-medium">Institucional</div>

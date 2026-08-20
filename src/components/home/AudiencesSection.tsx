@@ -8,6 +8,12 @@ const imageMap = {
   school: images.school,
 } as const;
 
+const imageFallback: Record<keyof typeof imageMap, string> = {
+  candidate: images.candidate,
+  company: images.company,
+  school: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=600&fit=crop&auto=format&q=80',
+};
+
 export function AudiencesSection() {
   return (
     <section className="mx-auto max-w-6xl px-4 py-16">
@@ -28,6 +34,11 @@ export function AudiencesSection() {
                 alt=""
                 className="h-full w-full object-cover"
                 loading="lazy"
+                onError={(e) => {
+                  const img = e.currentTarget;
+                  const fb = imageFallback[audience.imageKey];
+                  if (fb && img.src !== fb) img.src = fb;
+                }}
               />
             </div>
             <div className="p-6">

@@ -13,3 +13,7 @@
 
 Options -Indexes
 DirectoryIndex index.html
+
+<IfModule mod_mime.c>
+  AddType image/svg+xml .svg .svgz
+</IfModule>
