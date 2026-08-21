@@ -1,4 +1,5 @@
 import { Layout } from '../components/Layout';
+import { SeoHead } from '../components/SeoHead';
 import { useBranding } from '../hooks/useBranding';
 import { HeroSection } from '../components/home/HeroSection';
 import { JobTypesStrip } from '../components/home/JobTypesStrip';
@@ -15,6 +16,7 @@ export function HomePage() {
 
   return (
     <Layout>
+      <SeoHead />
       <HeroSection branding={branding} />
       <JobTypesStrip />
       <FeaturedJobsSection />

@@ -199,8 +199,18 @@ export type BlogComentario = {
   texto: string;
   nomeExibicao: string;
   tipoAutor: 'candidato' | 'empresa' | string;
+  avatarUrl?: string | null;
   createdAt: string;
   usuarioId?: number;
+};
+
+export type Depoimento = {
+  id: number;
+  texto: string;
+  nome: string;
+  cargo: string;
+  tipoAutor?: string;
+  avatarUrl?: string | null;
 };
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -432,6 +442,8 @@ export const api = {
     ),
   excluirBlogComentario: (id: number) =>
     authRequest<{ message?: string }>(`/conect/blog/comentarios/${id}`, { method: 'DELETE' }),
+  depoimentos: () =>
+    request<{ items: Depoimento[]; sqlOk?: boolean }>('/conect/public/depoimentos'),
 };
 
 export function saveSession(token: string, role: AuthRole) {

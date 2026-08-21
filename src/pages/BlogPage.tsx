@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Layout } from '../components/Layout';
+import { SeoHead } from '../components/SeoHead';
 import { api, type BlogPostResumo } from '../lib/api';
 
 const CAT_LABEL: Record<string, string> = {
@@ -31,6 +32,7 @@ export function BlogPage() {
 
   return (
     <Layout>
+      <SeoHead title="Blog" description="Artigos sobre tecnologia, formação e empregabilidade." />
       <div className="mx-auto max-w-5xl px-4 py-14">
         <p className="badge mb-3">Conteúdo</p>
         <h1 className="text-3xl font-bold">Blog</h1>

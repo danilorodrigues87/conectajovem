@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { BlogComments } from '../components/BlogComments';
 import { Layout } from '../components/Layout';
+import { SeoHead } from '../components/SeoHead';
 import { api, type BlogPost } from '../lib/api';
+import { formatDateBr } from '../lib/date';
 
 export function BlogPostPage() {
   const { slug = '' } = useParams();
@@ -18,17 +20,22 @@ export function BlogPostPage() {
       .blogPost(slug)
       .then((r) => {
         setPost(r.post);
-        document.title = `${r.post.metaTitle || r.post.titulo} — Conecta Jovem`;
       })
       .catch((e) => setError(e instanceof Error ? e.message : 'Erro ao carregar'))
       .finally(() => setLoading(false));
-    return () => {
-      document.title = 'Conecta Jovem';
-    };
   }, [slug]);
 
   return (
     <Layout>
+      {post && (
+        <SeoHead
+          title={post.metaTitle || post.titulo}
+          description={post.metaDescription || post.resumo}
+          image={post.capaUrl}
+          url={`${window.location.origin}/blog/${post.slug}`}
+          type="article"
+        />
+      )}
       <article className="mx-auto max-w-3xl px-4 py-14">
         <Link to="/blog" className="text-sm text-brand-accent hover:underline">
           ← Voltar ao blog
@@ -45,7 +52,7 @@ export function BlogPostPage() {
             <h1 className="mt-4 text-3xl font-bold leading-tight md:text-4xl">{post.titulo}</h1>
             <p className="mt-3 text-sm text-subtle">
               {post.autorNome}
-              {post.publicadoEm ? ` · ${post.publicadoEm}` : ''}
+              {post.publicadoEm ? ` · ${formatDateBr(post.publicadoEm)}` : ''}
             </p>
             {post.capaUrl && (
               <img

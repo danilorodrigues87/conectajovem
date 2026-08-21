@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FieldLabel } from '../components/FieldLabel';
 import { Layout } from '../components/Layout';
+import { SeoHead } from '../components/SeoHead';
 import { api, getRole, getToken, type Vaga } from '../lib/api';
 
 const tipoLabel: Record<string, string> = {
@@ -87,6 +88,14 @@ export function VagaDetalhePage() {
 
   return (
     <Layout>
+      {vaga && (
+        <SeoHead
+          title={vaga.titulo}
+          description={vaga.descricao?.slice(0, 160) || `${vaga.empresaNome} — ${vaga.tipoVaga}`}
+          image={vaga.empresaLogoUrl}
+          url={`${window.location.origin}/vagas/${vaga.slug}`}
+        />
+      )}
       <div className="mx-auto max-w-3xl px-4 py-10">
         <Link to="/vagas" className="text-sm text-brand-accent hover:underline">
           ← Voltar às vagas
@@ -109,7 +118,7 @@ export function VagaDetalhePage() {
               <div>
                 <FieldLabel>Empresa</FieldLabel>
                 <p className="font-medium">{vaga.empresaNome}</p>
-                <FieldLabel>Título</FieldLabel>
+                <FieldLabel>Vaga</FieldLabel>
                 <h1 className="text-3xl font-bold">{vaga.titulo}</h1>
               </div>
             </div>

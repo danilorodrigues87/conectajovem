@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Toast } from './Toast';
 import { api, getRole, getToken, type BlogComentario } from '../lib/api';
+import { formatDateTimeBr } from '../lib/date';
 
 type Props = {
   slug: string;
@@ -84,6 +85,24 @@ export function BlogComments({ slug }: Props) {
 
   const loginReturn = encodeURIComponent(`/blog/${slug}`);
 
+  function CommentAvatar({ c }: { c: BlogComentario }) {
+    const initial = (c.nomeExibicao || '?').charAt(0).toUpperCase();
+    if (c.avatarUrl) {
+      return (
+        <img
+          src={c.avatarUrl}
+          alt=""
+          className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-[var(--cj-border)]"
+        />
+      );
+    }
+    return (
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-accent/15 text-sm font-bold text-brand-accent ring-1 ring-[var(--cj-border)]">
+        {initial}
+      </div>
+    );
+  }
+
   return (
     <section className="mt-12 border-t border-[var(--cj-border)] pt-10">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
@@ -122,28 +141,33 @@ export function BlogComments({ slug }: Props) {
         {items.map((c) => {
           const mine = logado && userId != null && c.usuarioId === userId;
           return (
-            <div key={c.id} className="glass-card space-y-2">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium">{c.nomeExibicao}</span>
-                  {c.tipoAutor === 'empresa' && (
-                    <span className="rounded-full bg-brand-accent/15 px-2 py-0.5 text-[10px] uppercase tracking-wide text-brand-accent">
-                      Empresa
-                    </span>
-                  )}
-                  <span className="text-xs text-faint">{c.createdAt}</span>
+            <div key={c.id} className="glass-card">
+              <div className="flex gap-3">
+                <CommentAvatar c={c} />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-medium">{c.nomeExibicao}</span>
+                      {c.tipoAutor === 'empresa' && (
+                        <span className="rounded-full bg-brand-accent/15 px-2 py-0.5 text-[10px] uppercase tracking-wide text-brand-accent">
+                          Empresa
+                        </span>
+                      )}
+                      <span className="text-xs text-faint">{formatDateTimeBr(c.createdAt)}</span>
+                    </div>
+                    {mine && (
+                      <button
+                        type="button"
+                        className="text-xs text-red-300 hover:underline"
+                        onClick={() => void onDelete(c.id)}
+                      >
+                        Excluir
+                      </button>
+                    )}
+                  </div>
+                  <p className="whitespace-pre-wrap text-sm text-[var(--cj-text)]">{c.texto}</p>
                 </div>
-                {mine && (
-                  <button
-                    type="button"
-                    className="text-xs text-red-300 hover:underline"
-                    onClick={() => void onDelete(c.id)}
-                  >
-                    Excluir
-                  </button>
-                )}
               </div>
-              <p className="whitespace-pre-wrap text-sm text-[var(--cj-text)]">{c.texto}</p>
             </div>
           );
         })}
