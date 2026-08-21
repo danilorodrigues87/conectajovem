@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { AddressFields } from '../components/AddressFields';
 import { CurriculoPreview } from '../components/CurriculoPreview';
 import { Layout } from '../components/Layout';
+import { SocialLinksForm } from '../components/SocialLinksForm';
 import { Toast } from '../components/Toast';
 import {
   api,
@@ -15,6 +16,7 @@ import {
   type UserCandidato,
 } from '../lib/api';
 import { newExperiencia, newFormacaoAcademica, TIPO_FORMACAO_LABEL } from '../lib/curriculo';
+import { EMPTY_REDES, normalizeRedes } from '../lib/social';
 import { site } from '../config/site';
 
 type Tab = 'perfil' | 'curriculo' | 'candidaturas' | 'notificacoes';
@@ -75,6 +77,7 @@ export function CandidatoDashboardPage() {
     habilidades: [] as string[],
     formacaoAcademica: [] as FormacaoAcademica[],
     experiencias: [] as ExperienciaProfissional[],
+    redesSociais: { ...EMPTY_REDES },
   });
 
   const onLocationChange = useCallback(
@@ -102,6 +105,7 @@ export function CandidatoDashboardPage() {
         habilidades: r.candidato.habilidades || [],
         formacaoAcademica: r.candidato.formacaoAcademica || [],
         experiencias: r.candidato.experiencias || [],
+        redesSociais: normalizeRedes(r.candidato.redesSociais),
       });
     });
   }
@@ -167,6 +171,7 @@ export function CandidatoDashboardPage() {
         habilidades: form.habilidades,
         formacaoAcademica: form.formacaoAcademica,
         experiencias: form.experiencias,
+        redesSociais: form.redesSociais,
       });
       setPerfil(res.candidato);
       setForm((f) => ({
@@ -689,6 +694,10 @@ export function CandidatoDashboardPage() {
                 Seu perfil exibe o selo <strong className="text-brand-accent">{site.badgeCertified}</strong> para empresas parceiras.
               </p>
             )}
+            <SocialLinksForm
+              value={form.redesSociais}
+              onChange={(redesSociais) => setForm((f) => ({ ...f, redesSociais }))}
+            />
             <button type="submit" className="btn-primary" disabled={saving}>
               {saving ? 'Salvando…' : 'Salvar perfil'}
             </button>

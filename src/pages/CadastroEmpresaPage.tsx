@@ -73,6 +73,12 @@ export function CadastroEmpresaPage() {
           <input className="input" type="password" placeholder="Senha" value={form.password} onChange={(e) => set('password', e.target.value)} required minLength={6} />
           <input className="input" placeholder="WhatsApp comercial" value={form.whatsapp} onChange={(e) => set('whatsapp', e.target.value)} />
           {error && <p className="text-sm text-red-500 dark:text-red-400">{error}</p>}
+          <p className="text-xs text-faint">
+            Ao cadastrar, você concorda com os{' '}
+            <Link to="/termos" className="text-brand-accent hover:underline">Termos de Uso</Link>
+            {' '}e a{' '}
+            <Link to="/privacidade" className="text-brand-accent hover:underline">Política de Privacidade</Link>.
+          </p>
           <button className="btn-primary w-full" disabled={loading}>{loading ? 'Enviando…' : 'Cadastrar empresa'}</button>
         </form>
       </div>

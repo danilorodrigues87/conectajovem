@@ -92,16 +92,13 @@ export async function embedCurriculoImages(root: HTMLElement): Promise<void> {
       if (!src || src.startsWith('data:')) return;
 
       let dataUrl: string | null = null;
-      let strategy = 'none';
 
       if (img.classList.contains('curriculo-foto')) {
         dataUrl = await fetchCandidatoFotoDataUrl();
-        if (dataUrl) strategy = 'api';
       }
       if (!dataUrl) {
         try {
           dataUrl = await fetchBlobAsDataUrl(src);
-          strategy = 'blob';
         } catch {
           /* próxima estratégia */
         }
@@ -109,7 +106,6 @@ export async function embedCurriculoImages(root: HTMLElement): Promise<void> {
       if (!dataUrl) {
         try {
           dataUrl = await fetchImageAsDataUrl(src);
-          strategy = 'canvas';
         } catch {
           /* mantém URL original */
         }
@@ -118,10 +114,6 @@ export async function embedCurriculoImages(root: HTMLElement): Promise<void> {
       if (dataUrl) {
         img.setAttribute('src', dataUrl);
       }
-
-      // #region agent log
-      fetch('http://127.0.0.1:7299/ingest/c2f3b05d-73bd-477d-8214-a3a1d104df4e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6b4d05'},body:JSON.stringify({sessionId:'6b4d05',runId:'post-fix',hypothesisId:'H1',location:'curriculoExport.ts:embed',message:dataUrl?'embed ok':'embed fail',data:{strategy,hasDataUrl:!!dataUrl,dataLen:dataUrl?.length??0,srcHost:(()=>{try{return new URL(src).host}catch{return 'invalid'}})()},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
     }),
   );
 }
@@ -219,9 +211,6 @@ export async function imprimirCurriculo(source: HTMLElement): Promise<void> {
 
   const doc = iframe.contentDocument;
   if (!doc) {
-    // #region agent log
-    fetch('http://127.0.0.1:7299/ingest/c2f3b05d-73bd-477d-8214-a3a1d104df4e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6b4d05'},body:JSON.stringify({sessionId:'6b4d05',runId:'pre-fix',hypothesisId:'H5',location:'curriculoExport.ts:print',message:'iframe doc null fallback window.print',data:{},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     cleanup();
     iframe.remove();
     window.print();
@@ -235,26 +224,6 @@ export async function imprimirCurriculo(source: HTMLElement): Promise<void> {
   doc.close();
   doc.body.appendChild(root);
   await waitForImages(doc);
-
-  const imgs = [...doc.querySelectorAll('img')].map((img) => ({
-    complete: img.complete,
-    naturalWidth: img.naturalWidth,
-    naturalHeight: img.naturalHeight,
-    isDataUrl: (img.getAttribute('src') || '').startsWith('data:'),
-    srcHost: (() => {
-      try {
-        return new URL(img.src).host;
-      } catch {
-        return 'invalid';
-      }
-    })(),
-  }));
-
-  const sheet = doc.querySelector('.curriculo-sheet');
-  const sheetStyle = sheet ? doc.defaultView?.getComputedStyle(sheet) : null;
-  // #region agent log
-  fetch('http://127.0.0.1:7299/ingest/c2f3b05d-73bd-477d-8214-a3a1d104df4e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6b4d05'},body:JSON.stringify({sessionId:'6b4d05',runId:'pre-fix',hypothesisId:'H2-H3',location:'curriculoExport.ts:print',message:'iframe ready before print',data:{imgs,rootW:root.offsetWidth,rootH:root.offsetHeight,bodyW:doc.body.offsetWidth,sheetPad:sheetStyle?.padding,sheetMargin:sheetStyle?.margin,sheetMaxW:sheetStyle?.maxWidth},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
 
   const win = iframe.contentWindow;
   if (!win) {

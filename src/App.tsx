@@ -8,6 +8,10 @@ import { CadastroCandidatoPage } from './pages/CadastroCandidatoPage';
 import { CadastroEmpresaPage } from './pages/CadastroEmpresaPage';
 import { ComoFuncionaPage } from './pages/ComoFuncionaPage';
 import { ContatoPage } from './pages/ContatoPage';
+import { BlogPage } from './pages/BlogPage';
+import { BlogPostPage } from './pages/BlogPostPage';
+import { PrivacidadePage } from './pages/PrivacidadePage';
+import { TermosPage } from './pages/TermosPage';
 import { CandidatoDashboardPage } from './pages/CandidatoDashboardPage';
 import { EmpresaDashboardPage } from './pages/EmpresaDashboardPage';
 import { getRole, getToken } from './lib/api';
@@ -27,6 +31,10 @@ export default function App() {
         <Route path="/empresas" element={<EmpresasPage />} />
         <Route path="/como-funciona" element={<ComoFuncionaPage />} />
         <Route path="/contato" element={<ContatoPage />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:slug" element={<BlogPostPage />} />
+        <Route path="/privacidade" element={<PrivacidadePage />} />
+        <Route path="/termos" element={<TermosPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/cadastro" element={<CadastroCandidatoPage />} />
         <Route path="/cadastro/empresa" element={<CadastroEmpresaPage />} />

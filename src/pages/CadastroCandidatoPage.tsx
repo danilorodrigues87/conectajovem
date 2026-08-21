@@ -40,6 +40,12 @@ export function CadastroCandidatoPage() {
           <input className="input" placeholder="WhatsApp" value={form.whatsapp} onChange={(e) => set('whatsapp', e.target.value)} />
           <textarea className="input min-h-[90px]" placeholder="Resumo / objetivo profissional" value={form.resumo} onChange={(e) => set('resumo', e.target.value)} />
           {error && <p className="text-sm text-red-500 dark:text-red-400">{error}</p>}
+          <p className="text-xs text-faint">
+            Ao cadastrar, você concorda com os{' '}
+            <Link to="/termos" className="text-brand-accent hover:underline">Termos de Uso</Link>
+            {' '}e a{' '}
+            <Link to="/privacidade" className="text-brand-accent hover:underline">Política de Privacidade</Link>.
+          </p>
           <button className="btn-primary w-full" disabled={loading}>{loading ? 'Cadastrando…' : 'Criar conta'}</button>
         </form>
         <p className="mt-4 text-center text-sm text-subtle">

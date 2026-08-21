@@ -1,5 +1,6 @@
 import type { CandidatoPerfil } from '../lib/api';
 import { site } from '../config/site';
+import { SocialLinks } from './SocialLinks';
 import {
   DISPONIBILIDADE_LABEL,
   agruparFormacaoAcademica,
@@ -40,6 +41,7 @@ export function CurriculoDocument({ perfil }: Props) {
           {perfil.temSeloCertificado && (
             <p className="curriculo-selo">✓ {site.badgeCertified}</p>
           )}
+          <SocialLinks redes={perfil.redesSociais} className="curriculo-social mt-2" compact />
         </div>
       </header>
 

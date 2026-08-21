@@ -32,6 +32,16 @@ export type Empresa = {
   cidadeNome?: string;
   uf?: string;
   logoUrl?: string | null;
+  redesSociais?: RedesSociais;
+};
+
+export type RedesSociais = {
+  linkedin: string;
+  instagram: string;
+  github: string;
+  portfolio: string;
+  facebook: string;
+  tiktok: string;
 };
 
 export type Cidade = { id: number; nome: string };
@@ -65,6 +75,7 @@ export type EmpresaPerfil = {
   endereco?: string;
   status: string;
   logoUrl?: string | null;
+  redesSociais?: RedesSociais;
 };
 
 export type CandidaturaEmpresa = Candidatura & {
@@ -127,6 +138,7 @@ export type CandidatoPerfil = {
   formacaoAcademica?: FormacaoAcademica[];
   experiencias?: ExperienciaProfissional[];
   temSeloCertificado: boolean;
+  redesSociais?: RedesSociais;
 };
 
 export type FormacaoCandidato = {
@@ -162,6 +174,34 @@ export type Notificacao = {
 };
 
 export type AuthRole = 'candidato' | 'empresa';
+
+export type BlogPostResumo = {
+  id: number;
+  titulo: string;
+  slug: string;
+  resumo: string;
+  capaUrl?: string | null;
+  categoriaNome?: string;
+  categoriaSlug?: string;
+  autorNome?: string;
+  publicadoEm?: string;
+  comentariosCount?: number;
+};
+
+export type BlogPost = BlogPostResumo & {
+  corpoHtml: string;
+  metaTitle?: string;
+  metaDescription?: string;
+};
+
+export type BlogComentario = {
+  id: number;
+  texto: string;
+  nomeExibicao: string;
+  tipoAutor: 'candidato' | 'empresa' | string;
+  createdAt: string;
+  usuarioId?: number;
+};
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   let res: Response;
@@ -255,6 +295,18 @@ export const api = {
   estados: () => request<{ items: Estado[] }>('/conect/public/estados'),
   cidadesPorEstado: (estadoId: number) =>
     request<{ items: Cidade[] }>(`/conect/public/estados/${estadoId}/cidades`),
+  enviarContato: (payload: {
+    nome: string;
+    email: string;
+    whatsapp?: string;
+    assunto?: string;
+    mensagem: string;
+    website?: string;
+  }) =>
+    request<{ message?: string }>('/conect/public/contato', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   loginCandidato: (email: string, password: string) =>
     request<{ user: unknown; tokens: { accessToken: string } }>('/conect/auth/login', {
       method: 'POST',
@@ -357,6 +409,29 @@ export const api = {
     const qs = q.toString();
     return authRequest<{ items: CandidatoPerfil[] }>(`/conect-empresa/talentos${qs ? `?${qs}` : ''}`);
   },
+  blogPosts: (params: { q?: string; categoria?: string; limit?: number } = {}) => {
+    const q = new URLSearchParams();
+    if (params.q) q.set('q', params.q);
+    if (params.categoria) q.set('categoria', params.categoria);
+    if (params.limit) q.set('limit', String(params.limit));
+    const qs = q.toString();
+    return request<{ items: BlogPostResumo[]; sqlOk?: boolean }>(
+      `/conect/public/blog/posts${qs ? `?${qs}` : ''}`,
+    );
+  },
+  blogPost: (slug: string) =>
+    request<{ post: BlogPost; sqlOk?: boolean }>(`/conect/public/blog/posts/${encodeURIComponent(slug)}`),
+  blogComentarios: (slug: string) =>
+    request<{ items: BlogComentario[]; total?: number }>(
+      `/conect/public/blog/posts/${encodeURIComponent(slug)}/comentarios`,
+    ),
+  criarBlogComentario: (slug: string, texto: string) =>
+    authRequest<{ message?: string; comentario?: BlogComentario }>(
+      `/conect/blog/posts/${encodeURIComponent(slug)}/comentarios`,
+      { method: 'POST', body: JSON.stringify({ texto }) },
+    ),
+  excluirBlogComentario: (id: number) =>
+    authRequest<{ message?: string }>(`/conect/blog/comentarios/${id}`, { method: 'DELETE' }),
 };
 
 export function saveSession(token: string, role: AuthRole) {

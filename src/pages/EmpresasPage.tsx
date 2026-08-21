@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Layout } from '../components/Layout';
+import { SocialLinks } from '../components/SocialLinks';
 import { api, type Empresa } from '../lib/api';
 import { site } from '../config/site';
 
@@ -25,6 +26,7 @@ function EmpresaCard({ empresa }: { empresa: Empresa }) {
           <p className="mt-1 text-sm text-subtle">
             {[empresa.cidadeNome, empresa.uf].filter(Boolean).join(' · ') || 'Brasil'}
           </p>
+          <SocialLinks redes={empresa.redesSociais} compact className="mt-2" />
           <span className="mt-3 inline-flex text-xs text-brand-accent/80">Empresa parceira ✓</span>
         </div>
       </div>

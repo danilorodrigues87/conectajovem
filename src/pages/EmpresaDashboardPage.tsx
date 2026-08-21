@@ -4,6 +4,8 @@ import { AddressFields } from '../components/AddressFields';
 import { CurriculoView } from '../components/CurriculoView';
 import { Layout } from '../components/Layout';
 import { LocationSelect } from '../components/LocationSelect';
+import { SocialLinks } from '../components/SocialLinks';
+import { SocialLinksForm } from '../components/SocialLinksForm';
 import {
   api,
   clearSession,
@@ -13,6 +15,7 @@ import {
   type UserEmpresa,
   type Vaga,
 } from '../lib/api';
+import { EMPTY_REDES, normalizeRedes } from '../lib/social';
 import { useBranding } from '../hooks/useBranding';
 
 type Tab = 'vagas' | 'candidaturas' | 'talentos' | 'perfil';
@@ -102,6 +105,7 @@ export function EmpresaDashboardPage() {
     cidadeId: '',
     bairro: '',
     uf: '',
+    redesSociais: { ...EMPTY_REDES },
   });
 
   const onPerfilLocationChange = useCallback(
@@ -168,6 +172,7 @@ export function EmpresaDashboardPage() {
         cidadeId: r.empresa.cidadeId ? String(r.empresa.cidadeId) : '',
         bairro: r.empresa.bairro || '',
         uf: r.empresa.uf || '',
+        redesSociais: normalizeRedes(r.empresa.redesSociais),
       });
     });
   }
@@ -216,9 +221,6 @@ export function EmpresaDashboardPage() {
 
   function abrirTalento(c: CandidatoPerfil) {
     setDetalheTalento(c);
-    // #region agent log
-    fetch('http://127.0.0.1:7299/ingest/c2f3b05d-73bd-477d-8214-a3a1d104df4e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6b4d05'},body:JSON.stringify({sessionId:'6b4d05',runId:'post-fix-talentos',hypothesisId:'H1',location:'EmpresaDashboardPage.tsx:abrirTalento',message:'talento selected',data:{id:c.id,nome:c.nome,hasResumo:!!c.resumo,habilidades:c.habilidades?.length??0},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
   }
 
   function openNovaVaga() {
@@ -291,14 +293,8 @@ export function EmpresaDashboardPage() {
     try {
       const r = await api.empresaCandidaturaDetalhe(id);
       setDetalheCand(r);
-      // #region agent log
-      fetch('http://127.0.0.1:7299/ingest/c2f3b05d-73bd-477d-8214-a3a1d104df4e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6b4d05'},body:JSON.stringify({sessionId:'6b4d05',runId:'post-fix-empresa',hypothesisId:'H2',location:'EmpresaDashboardPage.tsx:abrirCandidatura',message:'candidatura loaded',data:{id,hasCandidato:!!r.candidato,candidatoNome:r.candidato?.nome||r.candidatura?.candidatoNome},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       await loadCandidaturas();
     } catch (err) {
-      // #region agent log
-      fetch('http://127.0.0.1:7299/ingest/c2f3b05d-73bd-477d-8214-a3a1d104df4e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6b4d05'},body:JSON.stringify({sessionId:'6b4d05',runId:'post-fix-empresa',hypothesisId:'H2',location:'EmpresaDashboardPage.tsx:abrirCandidatura',message:'candidatura error',data:{id,err:err instanceof Error?err.message:String(err)},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       flash(err instanceof Error ? err.message : 'Erro', true);
     } finally {
       setSaving(false);
@@ -351,12 +347,10 @@ export function EmpresaDashboardPage() {
         cidadeId: perfilForm.cidadeId ? Number(perfilForm.cidadeId) : undefined,
         bairro: perfilForm.bairro,
         uf: perfilForm.uf,
+        redesSociais: perfilForm.redesSociais,
       });
       setUser(res.user);
       setEmpresa(res.empresa);
-      // #region agent log
-      fetch('http://127.0.0.1:7299/ingest/c2f3b05d-73bd-477d-8214-a3a1d104df4e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6b4d05'},body:JSON.stringify({sessionId:'6b4d05',runId:'post-fix-empresa',hypothesisId:'H1',location:'EmpresaDashboardPage.tsx:onSubmitPerfil',message:'perfil saved',data:{userStatus:res.user?.status,empresaStatus:res.empresa?.status},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       setPerfilForm((f) => ({
         ...f,
         estadoId: res.empresa.estadoId ? String(res.empresa.estadoId) : f.estadoId,
@@ -365,6 +359,7 @@ export function EmpresaDashboardPage() {
         logradouro: res.empresa.logradouro || '',
         numero: res.empresa.numero || '',
         bairro: res.empresa.bairro || '',
+        redesSociais: normalizeRedes(res.empresa.redesSociais),
       }));
       flash(res.message || 'Perfil atualizado.');
     } catch (err) {
@@ -660,6 +655,7 @@ export function EmpresaDashboardPage() {
                     {detalheCand.candidato?.resumo && (
                       <p className="text-sm text-muted">{detalheCand.candidato.resumo}</p>
                     )}
+                    <SocialLinks redes={detalheCand.candidato?.redesSociais} className="mt-2" />
                     {detalheCand.candidato?.habilidades && detalheCand.candidato.habilidades.length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {detalheCand.candidato.habilidades.map((h) => (
@@ -798,6 +794,7 @@ export function EmpresaDashboardPage() {
                       </button>
                     </div>
                     {detalheTalento.resumo && <p className="text-sm text-muted">{detalheTalento.resumo}</p>}
+                    <SocialLinks redes={detalheTalento.redesSociais} className="mt-2" />
                     {detalheTalento.habilidades.length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {detalheTalento.habilidades.map((h) => (
@@ -961,6 +958,10 @@ export function EmpresaDashboardPage() {
                   onNumero={(v) => setPerfilForm((f) => ({ ...f, numero: v }))}
                   onBairro={(v) => setPerfilForm((f) => ({ ...f, bairro: v }))}
                   onLocation={onPerfilLocationChange}
+                />
+                <SocialLinksForm
+                  value={perfilForm.redesSociais}
+                  onChange={(redesSociais) => setPerfilForm((f) => ({ ...f, redesSociais }))}
                 />
                 <button type="submit" className="btn-primary" disabled={saving}>
                   {saving ? 'Salvando…' : 'Salvar perfil'}

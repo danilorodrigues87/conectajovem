@@ -8,8 +8,8 @@ export function TestimonialsSection() {
         <div className="text-center">
           <p className="badge mb-3 inline-flex">Histórias</p>
           <h2 className="text-2xl font-bold md:text-3xl">Quem já está conectado</h2>
-          <p className="mx-auto mt-3 max-w-xl text-sm text-faint">
-            Depoimentos ilustrativos — em breve, histórias reais da comunidade.
+          <p className="mx-auto mt-3 max-w-xl text-sm text-muted">
+            Experiências de candidatos, empresas e escolas parceiras na plataforma.
           </p>
         </div>
         <div className="mt-10 grid gap-6 md:grid-cols-3">

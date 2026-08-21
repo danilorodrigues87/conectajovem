@@ -6,7 +6,9 @@ import { api, saveSession } from '../lib/api';
 export function LoginPage() {
   const nav = useNavigate();
   const location = useLocation();
-  const from = (location.state as { from?: string } | null)?.from;
+  const fromState = (location.state as { from?: string } | null)?.from;
+  const fromQuery = new URLSearchParams(location.search).get('return') || undefined;
+  const from = fromQuery || fromState;
   const [tipo, setTipo] = useState<'candidato' | 'empresa'>('candidato');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,7 +23,7 @@ export function LoginPage() {
       const fn = tipo === 'candidato' ? api.loginCandidato : api.loginEmpresa;
       const res = await fn(email, password);
       saveSession(res.tokens.accessToken, tipo);
-      if (from && tipo === 'candidato') {
+      if (from) {
         nav(from);
       } else {
         nav(tipo === 'candidato' ? '/candidato' : '/empresa');

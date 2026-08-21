@@ -71,9 +71,6 @@ export function CurriculoPreview({ perfil, onClose }: Props) {
     if (!el) return;
     setImprimindo(true);
     try {
-      // #region agent log
-      fetch('http://127.0.0.1:7299/ingest/c2f3b05d-73bd-477d-8214-a3a1d104df4e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6b4d05'},body:JSON.stringify({sessionId:'6b4d05',runId:'pre-fix',hypothesisId:'H5',location:'CurriculoPreview.tsx:imprimir',message:'print button clicked',data:{hasFoto:!!perfil.fotoUrl,fotoHost:(()=>{try{return perfil.fotoUrl?new URL(perfil.fotoUrl).host:'none'}catch{return 'invalid'}})()},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       await imprimirCurriculo(el);
     } finally {
       setImprimindo(false);
