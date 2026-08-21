@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { Logo } from './Logo';
 import { ThemeToggle } from './ThemeToggle';
 import { WhatsAppFloat } from './WhatsAppFloat';
+import { SocialLinks } from './SocialLinks';
 import { site } from '../config/site';
 import { useBranding } from '../context/BrandingContext';
 import { clearSession, getRole, getToken } from '../lib/api';
@@ -25,7 +26,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const token = getToken();
   const role = getRole();
   const logado = !!token && !!role;
-  const { nomePortal, textoInstitucional } = useBranding();
+  const { nomePortal, textoInstitucional, redesSociais } = useBranding();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const perfilTo = role === 'empresa' ? '/empresa' : '/candidato';
@@ -158,6 +159,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <a href={`mailto:${site.contact.email}`} className="mt-1 block text-xs text-subtle hover:text-brand-accent">
                   {site.contact.email}
                 </a>
+                <SocialLinks redes={redesSociais} iconsOnly compact className="mt-4" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-8 text-sm text-muted sm:grid-cols-3">

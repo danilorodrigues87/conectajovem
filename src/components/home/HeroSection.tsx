@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { site } from '../../config/site';
+import { SocialLinks } from '../SocialLinks';
 import type { BrandingState } from '../../hooks/useBranding';
 import { images } from '../../config/images';
 
@@ -37,6 +38,7 @@ export function HeroSection({ branding }: Props) {
               {site.hero.ctaSecondary}
             </Link>
           </div>
+          <SocialLinks redes={branding.redesSociais} iconsOnly className="mt-6" />
           <div className="mt-10 grid grid-cols-3 gap-4 border-t border-edge pt-8">
             {site.stats.map((s) => (
               <div key={s.label}>

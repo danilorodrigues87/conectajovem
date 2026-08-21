@@ -282,6 +282,7 @@ export const api = {
         textoInstitucional?: string;
         heroImageUrl?: string | null;
         logoUrl?: string | null;
+        redesSociais?: Partial<import('./social').RedesSociais>;
       };
       sqlOk?: boolean;
     }>('/conect/public/branding'),

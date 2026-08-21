@@ -2,12 +2,14 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { api } from '../lib/api';
 import { images } from '../config/images';
 import { site } from '../config/site';
+import { EMPTY_REDES, normalizeRedes, type RedesSociais } from '../lib/social';
 
 export type BrandingState = {
   nomePortal: string;
   textoInstitucional: string;
   heroImageUrl: string;
   logoUrl: string | null;
+  redesSociais: RedesSociais;
   loading: boolean;
 };
 
@@ -16,6 +18,7 @@ const defaults: BrandingState = {
   textoInstitucional: site.about,
   heroImageUrl: images.hero,
   logoUrl: null,
+  redesSociais: EMPTY_REDES,
   loading: true,
 };
 
@@ -34,6 +37,7 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
           textoInstitucional: b.textoInstitucional?.trim() || site.about,
           heroImageUrl: b.heroImageUrl?.trim() || images.hero,
           logoUrl: b.logoUrl?.trim() || null,
+          redesSociais: normalizeRedes(b.redesSociais),
           loading: false,
         });
       })
