@@ -328,7 +328,7 @@ export function CandidatoDashboardPage() {
                         <p className="mt-0.5 text-xs text-subtle">
                           {FORMACAO_ORIGEM[f.origem] || f.origem}
                           {f.cargaH ? ` · ${f.cargaH}h` : ''}
-                          {f.concluidoEm ? ` · ${formatConclusaoEm(f.concluidoEm)}` : ''}
+                          {formatConclusaoEm(f.concluidoEm) ? ` · ${formatConclusaoEm(f.concluidoEm)}` : ''}
                         </p>
                       </div>
                       {f.seloCertificado && f.status === 'concluido' ? (

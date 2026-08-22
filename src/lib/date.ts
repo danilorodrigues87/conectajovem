@@ -30,8 +30,10 @@ export function formatDateTimeBr(value?: string | null): string {
 export function formatConclusaoEm(value?: string | null): string {
   if (!value || !String(value).trim()) return '';
   const raw = String(value).trim();
+  if (/^0000-00-00/.test(raw)) return '';
   const d = parseApiDate(raw);
   if (d) {
+    if (d.getFullYear() < 1900) return '';
     return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
   return raw;

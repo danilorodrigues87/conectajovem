@@ -76,7 +76,7 @@ export function CurriculoDocument({ perfil }: Props) {
                 <p className="curriculo-meta">
                   {FORMACAO_ORIGEM[f.origem] || f.origem}
                   {f.cargaH ? ` · ${f.cargaH}h` : ''}
-                  {f.concluidoEm ? ` · ${formatConclusaoEm(f.concluidoEm)}` : ''}
+                  {formatConclusaoEm(f.concluidoEm) ? ` · ${formatConclusaoEm(f.concluidoEm)}` : ''}
                 </p>
               </li>
             ))}
