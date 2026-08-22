@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://conectajovem.com.br/sitemap.xml

@@ -32,7 +32,8 @@ CONECT_ESCOLA_FALLBACK_ID=1
 
 Execute no phpMyAdmin: `painel-cti/database/conect_jovem.sql`
 
-Módulo escola: `/painel/conect`
+Módulo escola: `/painel/conect`  
+Roadmap completo (fases 1–6, API, deploy, smoke): `painel-cti/docs/CONECT_ROADMAP.md`
 
 ## Produção (cPanel Git — igual portal do aluno)
 
@@ -41,7 +42,8 @@ Módulo escola: `/painel/conect`
 3. Commit da pasta `dist/` + push
 4. cPanel → Git Version Control → **Deploy HEAD Commit**
 
-Detalhes: `DEPLOY.md`
+Detalhes: `DEPLOY.md`  
+Documentação completa: `../painel-cti/docs/CONECT_ROADMAP.md`
 
 - Domínio: `conectajovem.com.br`
 - API: `https://admin.ctieducacional.com.br/api/v1`

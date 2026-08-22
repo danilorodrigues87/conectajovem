@@ -16,6 +16,11 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api\/v1/, '/pjt/painel-cti/api/v1'),
         },
+        '/uploads': {
+          target: apiTarget,
+          changeOrigin: true,
+          rewrite: (path) => `/pjt/painel-cti${path}`,
+        },
       },
     },
   };

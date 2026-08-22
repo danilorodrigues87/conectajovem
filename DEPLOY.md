@@ -80,6 +80,8 @@ Se o Git foi criado **dentro** de `conectajovem.com.br`, cada deploy suja o work
 
 ## Testes
 
+Ver checklist completo em `../painel-cti/docs/CONECT_ROADMAP.md` §9.
+
 - https://conectajovem.com.br/
 - https://conectajovem.com.br/vagas
 - https://admin.ctieducacional.com.br/api/v1/conect/public/branding
