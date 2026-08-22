@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { BlogComments } from '../components/BlogComments';
+import { BlogShare } from '../components/BlogShare';
 import { Layout } from '../components/Layout';
 import { SeoHead } from '../components/SeoHead';
 import { api, type BlogPost } from '../lib/api';
 import { formatDateBr } from '../lib/date';
+import { slugify } from '../lib/slug';
 
 export function BlogPostPage() {
   const { slug = '' } = useParams();
@@ -17,7 +19,7 @@ export function BlogPostPage() {
     setLoading(true);
     setError('');
     api
-      .blogPost(slug)
+      .blogPost(slugify(slug))
       .then((r) => {
         setPost(r.post);
       })
@@ -67,6 +69,10 @@ export function BlogPostPage() {
             <div
               className="cj-blog-content mt-8"
               dangerouslySetInnerHTML={{ __html: post.corpoHtml }}
+            />
+            <BlogShare
+              title={post.titulo}
+              url={`${window.location.origin}/blog/${post.slug}`}
             />
             <BlogComments slug={post.slug} />
           </>

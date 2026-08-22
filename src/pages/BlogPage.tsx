@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { SeoHead } from '../components/SeoHead';
 import { api, type BlogPostResumo } from '../lib/api';
+import { slugify } from '../lib/slug';
 
 const CAT_LABEL: Record<string, string> = {
   tecnologia: 'Tecnologia',
@@ -68,7 +69,7 @@ export function BlogPage() {
 
         {destaque && (
           <Link
-            to={`/blog/${destaque.slug}`}
+            to={`/blog/${slugify(destaque.slug)}`}
             className="glass-card mt-8 block overflow-hidden transition hover:border-brand-accent/30"
           >
             <div className="grid gap-6 md:grid-cols-2">
@@ -97,7 +98,7 @@ export function BlogPage() {
           {resto.map((p) => (
             <Link
               key={p.id}
-              to={`/blog/${p.slug}`}
+              to={`/blog/${slugify(p.slug)}`}
               className="glass-card group flex flex-col overflow-hidden transition hover:border-brand-accent/25"
             >
               {p.capaUrl ? (
