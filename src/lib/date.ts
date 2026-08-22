@@ -22,3 +22,17 @@ export function formatDateTimeBr(value?: string | null): string {
   const time = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   return `${date} às ${time}`;
 }
+
+/**
+ * Conclusão de formação/selo: aceita ISO (`2025-08-01`) ou texto livre
+ * vindo do certificado da escola (`Agosto de 2025`, `Janeiro de 2026`).
+ */
+export function formatConclusaoEm(value?: string | null): string {
+  if (!value || !String(value).trim()) return '';
+  const raw = String(value).trim();
+  const d = parseApiDate(raw);
+  if (d) {
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+  return raw;
+}

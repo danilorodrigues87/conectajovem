@@ -4,11 +4,11 @@ import { trackPageview } from '../lib/analytics';
 
 /** Registra pageview first-party a cada mudança de rota (SPA). */
 export function AnalyticsTracker() {
-  const { pathname, search } = useLocation();
+  const { pathname } = useLocation();
 
   useEffect(() => {
-    trackPageview(`${pathname}${search}`);
-  }, [pathname, search]);
+    trackPageview(pathname);
+  }, [pathname]);
 
   return null;
 }

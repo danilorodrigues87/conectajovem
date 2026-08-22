@@ -16,6 +16,7 @@ import {
   type UserCandidato,
 } from '../lib/api';
 import { newExperiencia, newFormacaoAcademica, TIPO_FORMACAO_LABEL } from '../lib/curriculo';
+import { formatConclusaoEm } from '../lib/date';
 import { EMPTY_REDES, normalizeRedes } from '../lib/social';
 import { site } from '../config/site';
 
@@ -327,7 +328,7 @@ export function CandidatoDashboardPage() {
                         <p className="mt-0.5 text-xs text-subtle">
                           {FORMACAO_ORIGEM[f.origem] || f.origem}
                           {f.cargaH ? ` · ${f.cargaH}h` : ''}
-                          {f.concluidoEm ? ` · ${new Date(f.concluidoEm).toLocaleDateString('pt-BR')}` : ''}
+                          {f.concluidoEm ? ` · ${formatConclusaoEm(f.concluidoEm)}` : ''}
                         </p>
                       </div>
                       {f.seloCertificado && f.status === 'concluido' ? (

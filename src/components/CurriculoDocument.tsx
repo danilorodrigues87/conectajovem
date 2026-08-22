@@ -7,6 +7,7 @@ import {
   formatPeriodoExp,
   linhaFormacaoAcademica,
 } from '../lib/curriculo';
+import { formatConclusaoEm } from '../lib/date';
 
 const FORMACAO_ORIGEM: Record<string, string> = {
   manual: 'Certificado emitido pela escola parceira',
@@ -75,7 +76,7 @@ export function CurriculoDocument({ perfil }: Props) {
                 <p className="curriculo-meta">
                   {FORMACAO_ORIGEM[f.origem] || f.origem}
                   {f.cargaH ? ` · ${f.cargaH}h` : ''}
-                  {f.concluidoEm ? ` · ${new Date(f.concluidoEm).toLocaleDateString('pt-BR')}` : ''}
+                  {f.concluidoEm ? ` · ${formatConclusaoEm(f.concluidoEm)}` : ''}
                 </p>
               </li>
             ))}
