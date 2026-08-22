@@ -30,7 +30,8 @@ CONECT_ESCOLA_FALLBACK_ID=1
 
 ## Backend (painel-cti)
 
-Execute no phpMyAdmin: `painel-cti/database/conect_jovem.sql`
+Execute no phpMyAdmin: `painel-cti/database/conect_jovem.sql`  
+Para relatórios/analytics no Master: `painel-cti/database/conect_jovem_analytics.sql`
 
 Módulo escola: `/painel/conect`  
 Roadmap completo (fases 1–6, API, deploy, smoke): `painel-cti/docs/CONECT_ROADMAP.md`

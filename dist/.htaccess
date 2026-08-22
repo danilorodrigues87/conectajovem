@@ -8,6 +8,11 @@
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
+  # Artigos do blog com Open Graph estático (Facebook / WhatsApp)
+  RewriteCond %{REQUEST_URI} ^/blog/([a-z0-9-]+)/?$
+  RewriteCond %{DOCUMENT_ROOT}/blog/%1/index.html -f
+  RewriteRule ^blog/([a-z0-9-]+)/?$ blog/$1/index.html [L]
+
   RewriteRule ^ index.html [L]
 </IfModule>
 

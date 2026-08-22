@@ -4,7 +4,7 @@ import { site } from '../../config/site';
 export const privacidadeMeta = {
   badge: 'Institucional',
   title: 'Política de Privacidade',
-  updatedAt: '21 de agosto de 2026',
+  updatedAt: '22 de agosto de 2026',
   intro:
     'Esta Política descreve como o Conecta Jovem trata dados pessoais de candidatos, empresas parceiras e visitantes, em conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018).',
 };
@@ -28,7 +28,8 @@ export const privacidadeSections: LegalSection[] = [
       'Dados profissionais: currículo simplificado, habilidades, formação acadêmica, experiências, disponibilidade e mensagens de candidatura.',
       'Dados de empresas: CNPJ, razão social, nome fantasia, logo, contatos comerciais e vagas publicadas.',
       'Dados de escolas parceiras (quando aplicável): indicações de formação certificada vinculadas a perfis de candidatos.',
-      'Dados técnicos: endereço IP, data e hora de acesso, logs de segurança, cookies essenciais e preferências (ex.: tema claro/escuro).',
+      'Dados técnicos: endereço IP (apenas em logs transitórios de segurança), data e hora de acesso, logs de segurança, cookies essenciais e preferências (ex.: tema claro/escuro).',
+      'Medição de uso do portal (analytics first-party): identificador anônimo gerado no navegador (`cj_visitor_id` em localStorage), páginas visitadas e cliques em compartilhamento de artigos do blog. Não utilizamos Google Analytics nem pixels de terceiros para esse fim; o endereço IP não é armazenado nas tabelas de analytics.',
       'Dados do formulário de contato: nome, e-mail, WhatsApp (opcional), assunto e conteúdo da mensagem.',
       'Comentários no blog: nome de exibição, tipo de perfil (candidato ou empresa), texto do comentário e data, visíveis publicamente no artigo.',
     ],
@@ -47,6 +48,7 @@ export const privacidadeSections: LegalSection[] = [
       'Publicar e moderar conteúdo institucional do blog e permitir interação por meio de comentários de usuários logados.',
       'Prevenir fraudes, garantir segurança e cumprir obrigações legais.',
       'Melhorar a experiência e desempenho do site.',
+      'Medir tráfego agregado do portal (pageviews, visitantes únicos e compartilhamentos) para relatórios internos, sem perfilamento publicitário.',
     ],
   },
   {
@@ -98,7 +100,7 @@ export const privacidadeSections: LegalSection[] = [
     id: 'cookies',
     title: '9. Cookies e tecnologias similares',
     paragraphs: [
-      'Utilizamos cookies essenciais para funcionamento do site (sessão, preferências) e armazenamento local para autenticação e tema visual.',
+      'Utilizamos cookies essenciais para funcionamento do site (sessão, preferências) e armazenamento local para autenticação, tema visual e identificador anônimo de analytics (`cj_visitor_id`).',
       'Você pode gerenciar cookies no navegador; a desativação de cookies essenciais pode limitar funcionalidades.',
     ],
   },

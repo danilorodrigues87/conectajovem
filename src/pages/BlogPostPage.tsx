@@ -73,6 +73,8 @@ export function BlogPostPage() {
             <BlogShare
               title={post.titulo}
               url={`${window.location.origin}/blog/${post.slug}`}
+              path={`/blog/${post.slug}`}
+              slug={post.slug}
             />
             <BlogComments slug={post.slug} />
           </>

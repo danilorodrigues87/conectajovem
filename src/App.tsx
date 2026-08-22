@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { AnalyticsTracker } from './components/AnalyticsTracker';
 import { HomePage } from './pages/HomePage';
 import { VagasPage } from './pages/VagasPage';
 import { VagaDetalhePage } from './pages/VagaDetalhePage';
@@ -24,6 +25,7 @@ function Private({ children, role }: { children: JSX.Element; role: 'candidato' 
 export default function App() {
   return (
     <BrowserRouter>
+      <AnalyticsTracker />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/vagas" element={<VagasPage />} />

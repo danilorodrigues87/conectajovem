@@ -27,12 +27,18 @@ export function SeoHead({ title, description, image, url, type = 'website' }: Se
 
     const desc = description || site.description;
     const pageUrl = url || window.location.href;
-    const ogImage = image || `${window.location.origin}/logo-conect-jovem.png`;
+    const origin = window.location.origin;
+    const ogImage = image?.trim() || `${origin}/logo-conect-jovem.png`;
 
     upsertMeta('name', 'description', desc);
+    upsertMeta('property', 'og:site_name', site.name);
+    upsertMeta('property', 'og:locale', 'pt_BR');
     upsertMeta('property', 'og:title', fullTitle);
     upsertMeta('property', 'og:description', desc);
     upsertMeta('property', 'og:image', ogImage);
+    upsertMeta('property', 'og:image:secure_url', ogImage);
+    upsertMeta('property', 'og:image:width', '1200');
+    upsertMeta('property', 'og:image:height', '630');
     upsertMeta('property', 'og:url', pageUrl);
     upsertMeta('property', 'og:type', type);
     upsertMeta('name', 'twitter:card', 'summary_large_image');
