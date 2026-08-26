@@ -15,7 +15,9 @@ import { PrivacidadePage } from './pages/PrivacidadePage';
 import { TermosPage } from './pages/TermosPage';
 import { CandidatoDashboardPage } from './pages/CandidatoDashboardPage';
 import { EmpresaDashboardPage } from './pages/EmpresaDashboardPage';
+import { EmpresaAnunciosAssinaturaPage } from './pages/EmpresaAnunciosAssinaturaPage';
 import { getRole, getToken } from './lib/api';
+import { routerBasename } from './lib/assets';
 
 function Private({ children, role }: { children: JSX.Element; role: 'candidato' | 'empresa' }) {
   if (!getToken() || getRole() !== role) return <Navigate to="/login" replace />;
@@ -24,7 +26,7 @@ function Private({ children, role }: { children: JSX.Element; role: 'candidato' 
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={routerBasename()}>
       <AnalyticsTracker />
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -42,6 +44,7 @@ export default function App() {
         <Route path="/cadastro/empresa" element={<CadastroEmpresaPage />} />
         <Route path="/candidato" element={<Private role="candidato"><CandidatoDashboardPage /></Private>} />
         <Route path="/empresa" element={<Private role="empresa"><EmpresaDashboardPage /></Private>} />
+        <Route path="/empresa/anuncios/assinatura" element={<Private role="empresa"><EmpresaAnunciosAssinaturaPage /></Private>} />
       </Routes>
     </BrowserRouter>
   );

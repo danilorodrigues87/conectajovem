@@ -20,6 +20,7 @@ import { formatConclusaoEm } from '../lib/date';
 import { IDADE_MENOR, maxDateNascimento, validarNascimento } from '../lib/idade';
 import { EMPTY_REDES, normalizeRedes } from '../lib/social';
 import { site } from '../config/site';
+import { assetUrl } from '../lib/assets';
 
 type Tab = 'perfil' | 'curriculo' | 'candidaturas' | 'notificacoes';
 
@@ -254,7 +255,7 @@ export function CandidatoDashboardPage() {
 
   function logout() {
     clearSession();
-    window.location.href = '/login';
+    window.location.href = assetUrl('/login');
   }
 
   const naoLidas = notificacoes.filter((n) => !n.lida).length;

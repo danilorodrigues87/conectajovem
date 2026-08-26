@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { AdSlot } from '../components/ads/AdSlot';
 import { Layout } from '../components/Layout';
 import { VagaCard } from '../components/VagaCard';
 import { api, type Vaga } from '../lib/api';
@@ -67,10 +68,17 @@ export function VagasPage() {
           <p className="mt-8 text-subtle">Nenhuma vaga encontrada. Tente outra busca ou volte em breve!</p>
         )}
 
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
-          {vagas.map((v) => (
-            <VagaCard key={v.id} vaga={v} />
-          ))}
+        <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_280px]">
+          <div className="grid gap-4 md:grid-cols-2">
+            {vagas.map((v) => (
+              <VagaCard key={v.id} vaga={v} />
+            ))}
+          </div>
+          <aside className="hidden lg:block">
+            <div className="sticky top-24">
+              <AdSlot slot="vagas_sidebar" />
+            </div>
+          </aside>
         </div>
       </div>
     </Layout>

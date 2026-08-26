@@ -1,3 +1,4 @@
+import { AdSlot } from '../components/ads/AdSlot';
 import { Layout } from '../components/Layout';
 import { SeoHead } from '../components/SeoHead';
 import { useBranding } from '../hooks/useBranding';
@@ -20,6 +21,9 @@ export function HomePage() {
       <HeroSection branding={branding} />
       <JobTypesStrip />
       <FeaturedJobsSection />
+      <div className="mx-auto max-w-6xl px-4">
+        <AdSlot slot="home_mid" className="my-6" />
+      </div>
       <AudiencesSection />
       <HowItWorksSection branding={branding} />
       <DifferentialsSection />

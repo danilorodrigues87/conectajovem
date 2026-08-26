@@ -1,9 +1,10 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { AddressFields } from '../components/AddressFields';
 import { CandidatoIdadeBadge } from '../components/CandidatoIdadeBadge';
 import { CurriculoView } from '../components/CurriculoView';
 import { Layout } from '../components/Layout';
+import { EmpresaAnunciosTab } from '../components/empresa/EmpresaAnunciosTab';
 import { LocationSelect } from '../components/LocationSelect';
 import { SocialLinks } from '../components/SocialLinks';
 import { SocialLinksForm } from '../components/SocialLinksForm';
@@ -17,9 +18,10 @@ import {
   type Vaga,
 } from '../lib/api';
 import { EMPTY_REDES, normalizeRedes } from '../lib/social';
+import { assetUrl } from '../lib/assets';
 import { useBranding } from '../hooks/useBranding';
 
-type Tab = 'vagas' | 'candidaturas' | 'talentos' | 'perfil';
+type Tab = 'vagas' | 'candidaturas' | 'talentos' | 'anuncios' | 'perfil';
 
 const TIPO_LABEL: Record<string, string> = {
   aprendiz: 'Jovem Aprendiz',
@@ -72,7 +74,13 @@ function waLink(phone?: string) {
 
 export function EmpresaDashboardPage() {
   const { nomePortal } = useBranding();
-  const [tab, setTab] = useState<Tab>('vagas');
+  const [searchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const initialTab: Tab =
+    tabParam === 'anuncios' || tabParam === 'candidaturas' || tabParam === 'talentos' || tabParam === 'perfil'
+      ? tabParam
+      : 'vagas';
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [user, setUser] = useState<UserEmpresa | null>(null);
   const [empresa, setEmpresa] = useState<EmpresaPerfil | null>(null);
   const [vagas, setVagas] = useState<Vaga[]>([]);
@@ -372,7 +380,7 @@ export function EmpresaDashboardPage() {
 
   function logout() {
     clearSession();
-    window.location.href = '/login';
+    window.location.href = assetUrl('/login');
   }
 
   const aprovada = user?.status === 'aprovada';
@@ -417,6 +425,7 @@ export function EmpresaDashboardPage() {
                   ['vagas', 'Vagas'],
                   ['candidaturas', 'Candidaturas'],
                   ['talentos', 'Buscar talentos'],
+                  ['anuncios', 'Anúncios'],
                   ['perfil', 'Perfil'],
                 ] as const
               ).map(([t, label]) => (
@@ -895,6 +904,10 @@ export function EmpresaDashboardPage() {
                   )}
                 </div>
               </div>
+            )}
+
+            {tab === 'anuncios' && (
+              <EmpresaAnunciosTab onFlash={(msg, isError) => flash(msg, isError)} />
             )}
 
             {tab === 'perfil' && empresa && (

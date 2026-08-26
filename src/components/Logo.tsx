@@ -1,5 +1,6 @@
 import { useTheme } from '../context/ThemeContext';
 import { useBranding } from '../context/BrandingContext';
+import { assetUrl } from '../lib/assets';
 
 type LogoProps = {
   className?: string;
@@ -12,8 +13,8 @@ export function Logo({ className = 'h-10 w-auto' }: LogoProps) {
   const { theme } = useTheme();
   const { logoUrl, nomePortal } = useBranding();
   const isDark = theme === 'dark';
-  const png = isDark ? '/logo-conect-jovem-dark.png' : '/logo-conect-jovem.png';
-  const svg = isDark ? '/logo-conect-jovem-dark.svg' : '/logo-conect-jovem.svg';
+  const png = assetUrl(isDark ? '/logo-conect-jovem-dark.png' : '/logo-conect-jovem.png');
+  const svg = assetUrl(isDark ? '/logo-conect-jovem-dark.svg' : '/logo-conect-jovem.svg');
   const src = logoUrl || png;
 
   return (
@@ -29,7 +30,7 @@ export function Logo({ className = 'h-10 w-auto' }: LogoProps) {
           return;
         }
         if (!img.src.includes('logo.svg')) {
-          img.src = '/logo.svg';
+          img.src = assetUrl('/logo.svg');
         }
       }}
     />

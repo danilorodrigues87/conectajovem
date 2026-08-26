@@ -221,6 +221,91 @@ export type Depoimento = {
   avatarUrl?: string | null;
 };
 
+export type AnuncioSlot =
+  | 'footer_carousel'
+  | 'home_mid'
+  | 'vagas_sidebar'
+  | 'blog_sidebar'
+  | 'blog_artigo_fim';
+
+export type AnuncioPublico = {
+  id: number;
+  titulo: string;
+  nomeAnunciante: string;
+  imagemUrl?: string | null;
+  imagemMobileUrl?: string | null;
+  linkTipo: string;
+  linkDestino: string;
+  slot: string;
+};
+
+export type AnuncioEmpresa = {
+  id: number;
+  titulo: string;
+  nomeAnunciante: string;
+  imagemUrl?: string | null;
+  linkTipo: string;
+  linkDestino: string;
+  whatsapp?: string;
+  slot: string;
+  slotLabel?: string;
+  status: string;
+  statusLabel?: string;
+  impressoes?: number;
+  cliques?: number;
+  ctr?: number;
+  motivoRejeicao?: string;
+  inicioEm?: string | null;
+  fimEm?: string | null;
+};
+
+export type AnuncioConfigEmpresa = {
+  precoMinimoMensal: number;
+  maxAnunciosPorEmpresa: number;
+  slots: Record<string, string>;
+  slotDimensoes?: Record<string, { sugestao: string; hint: string }>;
+  usados: number;
+  requerAprovacaoMaster?: boolean;
+  assinatura?: AnuncioAssinaturaResumo;
+};
+
+export type AnuncioPlano = {
+  id: number;
+  slug: string;
+  nome: string;
+  descricao: string;
+  maxAnuncios: number;
+  valorMensal: number;
+};
+
+export type AnuncioFatura = {
+  id: number;
+  competencia: string;
+  valor: number;
+  vencimento: string;
+  status: string;
+  pixCopiaCola?: string;
+  pixQrBase64?: string;
+  pagoEm?: string | null;
+};
+
+export type AnuncioAssinaturaResumo = {
+  moduloAtivo?: boolean;
+  temAssinatura?: boolean;
+  assinaturaAtiva?: boolean;
+  assinatura?: {
+    id: number;
+    status: string;
+    proximoVencimento?: string | null;
+    plano?: AnuncioPlano | null;
+  } | null;
+  faturaAberta?: AnuncioFatura | null;
+  limiteAnuncios?: number;
+  usados?: number;
+  podeCriar?: boolean;
+  mpConfigurado?: boolean;
+};
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   let res: Response;
   try {
@@ -453,6 +538,79 @@ export const api = {
     authRequest<{ message?: string }>(`/conect/blog/comentarios/${id}`, { method: 'DELETE' }),
   depoimentos: () =>
     request<{ items: Depoimento[]; sqlOk?: boolean }>('/conect/public/depoimentos'),
+  anunciosPublicos: (params: { slot: AnuncioSlot; uf?: string; cidadeId?: number; limit?: number }) => {
+    const q = new URLSearchParams();
+    q.set('slot', params.slot);
+    if (params.uf) q.set('uf', params.uf);
+    if (params.cidadeId) q.set('cidadeId', String(params.cidadeId));
+    if (params.limit) q.set('limit', String(params.limit));
+    return request<{ items: AnuncioPublico[]; sqlOk?: boolean }>(`/conect/public/anuncios?${q.toString()}`);
+  },
+  anunciosConfigPublico: () =>
+    request<{ precoMinimoMensal: number; slotsHabilitados: string[]; slots: Record<string, string> }>(
+      '/conect/public/anuncios/config',
+    ),
+  registrarEventoAnuncio: (
+    id: number,
+    tipo: 'impressao' | 'clique',
+    slot: string,
+    geo?: { uf?: string; cidadeId?: number },
+  ) => {
+    const visitorId = (() => {
+      try {
+        let v = localStorage.getItem('cj_visitor_id');
+        if (!v) {
+          v = crypto.randomUUID();
+          localStorage.setItem('cj_visitor_id', v);
+        }
+        return v;
+      } catch {
+        return crypto.randomUUID();
+      }
+    })();
+    const body = new URLSearchParams({
+      tipo,
+      visitorId,
+      slot,
+    });
+    if (geo?.uf) body.set('uf', geo.uf);
+    if (geo?.cidadeId) body.set('cidadeId', String(geo.cidadeId));
+    return fetch(`${API}/conect/public/anuncios/${id}/evento`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString(),
+      keepalive: true,
+    }).then(async (res) => {
+      if (!res.ok) throw new Error('Falha ao registrar evento');
+      return res.json() as Promise<{ ok?: boolean }>;
+    });
+  },
+  empresaAnunciosConfig: () => authRequest<AnuncioConfigEmpresa>('/conect-empresa/anuncios/config'),
+  empresaAnuncios: () => authRequest<{ items: AnuncioEmpresa[]; sqlOk?: boolean }>('/conect-empresa/anuncios'),
+  criarAnuncioEmpresa: (fd: FormData) =>
+    authFormRequest<{ message?: string; anuncio?: AnuncioEmpresa }>('/conect-empresa/anuncios', fd),
+  atualizarAnuncioEmpresa: (id: number, fd: FormData) =>
+    authFormRequest<{ message?: string; anuncio?: AnuncioEmpresa }>(`/conect-empresa/anuncios/${id}`, fd),
+  excluirAnuncioEmpresa: (id: number) =>
+    authRequest<{ message?: string }>(`/conect-empresa/anuncios/${id}`, { method: 'DELETE' }),
+  anuncioPlanos: () =>
+    authRequest<{ items: AnuncioPlano[]; moduloAtivo?: boolean }>('/conect-empresa/anuncios/planos'),
+  anuncioAssinaturaResumo: () => authRequest<AnuncioAssinaturaResumo>('/conect-empresa/anuncios/assinatura'),
+  assinarAnuncioPlano: (planId: number) =>
+    authRequest<{ ok?: boolean; message?: string; fatura?: AnuncioFatura }>('/conect-empresa/anuncios/assinatura', {
+      method: 'POST',
+      body: JSON.stringify({ planId }),
+    }),
+  cancelarAnuncioAssinatura: () =>
+    authRequest<{ ok?: boolean; message?: string }>('/conect-empresa/anuncios/assinatura/cancelar', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    }),
+  verificarAnuncioAssinatura: (faturaId: number) =>
+    authRequest<{ ok?: boolean; pago?: boolean; message?: string }>(
+      '/conect-empresa/anuncios/assinatura/verificar',
+      { method: 'POST', body: JSON.stringify({ faturaId }) },
+    ),
 };
 
 export function saveSession(token: string, role: AuthRole) {

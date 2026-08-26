@@ -2,6 +2,8 @@
  * Imagens provisórias via Unsplash (URLs fixas, sem API key).
  * Substituir por uploads próprios quando o Master branding estiver ativo.
  */
+import { assetUrl } from '../lib/assets';
+
 const u = (id: string, w: number, h: number) =>
   `https://images.unsplash.com/${id}?w=${w}&h=${h}&fit=crop&auto=format&q=80`;
 
@@ -15,7 +17,7 @@ export const images = {
     u('photo-1507003211169-0a1dd7228f2d', 128, 128),
     u('photo-1438761681033-6461ffad8d80', 128, 128),
   ],
-  heroFallback: '/hero-conect-jovem.svg',
-  faviconSvg: '/logo-favicon.svg',
-  faviconPng: '/logo-favicon.png',
+  heroFallback: assetUrl('/hero-conect-jovem.svg'),
+  faviconSvg: assetUrl('/logo-favicon.svg'),
+  faviconPng: assetUrl('/logo-favicon.png'),
 } as const;

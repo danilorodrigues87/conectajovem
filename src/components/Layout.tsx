@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { AdSlot } from './ads/AdSlot';
 import { Logo } from './Logo';
 import { ThemeToggle } from './ThemeToggle';
 import { WhatsAppFloat } from './WhatsAppFloat';
 import { SocialLinks } from './SocialLinks';
 import { site } from '../config/site';
 import { useBranding } from '../context/BrandingContext';
+import { assetUrl } from '../lib/assets';
 import { clearSession, getRole, getToken } from '../lib/api';
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
@@ -34,7 +36,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   function logout() {
     clearSession();
-    window.location.href = '/';
+    window.location.href = assetUrl('/');
   }
 
   function closeMenu() {
@@ -147,7 +149,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
       )}
 
       <main>{children}</main>
-      <footer className="surface-footer mt-24 border-t">
+      <div className="mx-auto max-w-6xl px-4 pb-2">
+        <AdSlot slot="footer_carousel" />
+      </div>
+      <footer className="surface-footer mt-8 border-t">
         <div className="mx-auto max-w-6xl px-4 py-12">
           <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
             <div className="flex items-center gap-3">

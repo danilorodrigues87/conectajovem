@@ -2,7 +2,7 @@
 
 SPA React consumindo a API do **painel-cti** (`/api/v1/conect/*`).
 
-## Desenvolvimento local
+## Desenvolvimento local (recomendado)
 
 ```bash
 cd C:\xampp\htdocs\pjt\conectajovem
@@ -10,7 +10,23 @@ npm install
 npm run dev
 ```
 
-Abre em http://localhost:5173
+Abre em **http://localhost:5173** ou pelo IP da rede (**http://192.168.x.x:5173** — celular/outro PC na mesma Wi‑Fi).
+
+> Reinicie o `npm run dev` após mudanças no `vite.config.ts`. Se o IP não carregar, defina no `.env`: `VITE_DEV_LAN_IP=192.168.22.112` (seu IP).
+
+Apache/XAMPP precisa estar rodando para a API.
+
+## XAMPP — pasta dist (sem Vite dev)
+
+Se você abre pelo Apache (`http://localhost/pjt/conectajovem/dist/`), **precisa** do build com caminho correto:
+
+```bash
+npm run build:local
+```
+
+Depois acesse: **http://localhost/pjt/conectajovem/dist/**
+
+> Abrir só `http://localhost/pjt/conectajovem/` sem build local gera tela branca (JS em `/assets/` não existe na raiz do localhost).
 
 ## Configuração
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { AdSlot } from '../components/ads/AdSlot';
 import { BlogComments } from '../components/BlogComments';
 import { BlogShare } from '../components/BlogShare';
 import { Layout } from '../components/Layout';
@@ -38,7 +39,7 @@ export function BlogPostPage() {
           type="article"
         />
       )}
-      <article className="mx-auto max-w-3xl px-4 py-14">
+      <div className="mx-auto max-w-6xl px-4 py-14">
         <Link to="/blog" className="text-sm text-brand-accent hover:underline">
           ← Voltar ao blog
         </Link>
@@ -47,39 +48,47 @@ export function BlogPostPage() {
         {error && <p className="mt-8 text-red-300">{error}</p>}
 
         {post && (
-          <>
-            {post.categoriaNome && (
-              <p className="badge mt-6">{post.categoriaNome}</p>
-            )}
-            <h1 className="mt-4 text-3xl font-bold leading-tight md:text-4xl">{post.titulo}</h1>
-            <p className="mt-3 text-sm text-subtle">
-              {post.autorNome}
-              {post.publicadoEm ? ` · ${formatDateBr(post.publicadoEm)}` : ''}
-            </p>
-            {post.capaUrl && (
-              <img
-                src={post.capaUrl}
-                alt=""
-                className="mt-8 w-full rounded-2xl border border-[var(--cj-border)] object-cover"
+          <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1fr)_280px]">
+            <article className="min-w-0 max-w-3xl">
+              {post.categoriaNome && <p className="badge">{post.categoriaNome}</p>}
+              <h1 className="mt-4 text-3xl font-bold leading-tight md:text-4xl">{post.titulo}</h1>
+              <p className="mt-3 text-sm text-subtle">
+                {post.autorNome}
+                {post.publicadoEm ? ` · ${formatDateBr(post.publicadoEm)}` : ''}
+              </p>
+              {post.capaUrl && (
+                <img
+                  src={post.capaUrl}
+                  alt=""
+                  className="mt-8 w-full rounded-2xl border border-[var(--cj-border)] object-cover"
+                />
+              )}
+              {post.resumo && <p className="mt-8 text-lg text-muted">{post.resumo}</p>}
+              <div className="mt-8 flex justify-center lg:hidden">
+                <div className="w-full max-w-[300px]">
+                  <AdSlot slot="blog_sidebar" />
+                </div>
+              </div>
+              <div className="cj-blog-content mt-8" dangerouslySetInnerHTML={{ __html: post.corpoHtml }} />
+              <div className="mt-10">
+                <AdSlot slot="blog_artigo_fim" />
+              </div>
+              <BlogShare
+                title={post.titulo}
+                url={`${window.location.origin}/blog/${post.slug}`}
+                path={`/blog/${post.slug}`}
+                slug={post.slug}
               />
-            )}
-            {post.resumo && (
-              <p className="mt-8 text-lg text-muted">{post.resumo}</p>
-            )}
-            <div
-              className="cj-blog-content mt-8"
-              dangerouslySetInnerHTML={{ __html: post.corpoHtml }}
-            />
-            <BlogShare
-              title={post.titulo}
-              url={`${window.location.origin}/blog/${post.slug}`}
-              path={`/blog/${post.slug}`}
-              slug={post.slug}
-            />
-            <BlogComments slug={post.slug} />
-          </>
+              <BlogComments slug={post.slug} />
+            </article>
+            <aside className="hidden lg:block">
+              <div className="sticky top-24">
+                <AdSlot slot="blog_sidebar" />
+              </div>
+            </aside>
+          </div>
         )}
-      </article>
+      </div>
     </Layout>
   );
 }
