@@ -38,3 +38,12 @@ export function formatConclusaoEm(value?: string | null): string {
   }
   return raw;
 }
+
+/** Ex.: agosto de 2026 */
+export function formatCompetenciaBr(value?: string | null): string {
+  if (!value || !/^\d{4}-\d{2}$/.test(value)) return value ? String(value) : '';
+  const [ano, mes] = value.split('-');
+  const d = new Date(Number(ano), Number(mes) - 1, 1);
+  const label = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}

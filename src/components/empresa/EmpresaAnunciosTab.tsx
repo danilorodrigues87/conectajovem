@@ -138,6 +138,7 @@ export function EmpresaAnunciosTab({ onFlash }: Props) {
   const usados = config?.usados ?? items.length;
   const precisaAssinatura = ass?.moduloAtivo && !ass.assinaturaAtiva;
   const requerAprovacao = config?.requerAprovacaoMaster !== false;
+  const limiteExcedido = ass?.limiteExcedido === true;
 
   return (
     <div className="mt-8">
@@ -184,6 +185,12 @@ export function EmpresaAnunciosTab({ onFlash }: Props) {
           <Link to="/empresa/anuncios/assinatura" className="text-brand-accent underline">
             Ver planos
           </Link>
+        </div>
+      )}
+
+      {limiteExcedido && (
+        <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100/90">
+          Seu plano permite {limite} anúncio(s) ativo(s)/pendente(s), mas você tem {usados}. Pause ou exclua anúncios extras para voltar ao limite.
         </div>
       )}
 

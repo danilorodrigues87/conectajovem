@@ -281,12 +281,15 @@ export type AnuncioPlano = {
 export type AnuncioFatura = {
   id: number;
   competencia: string;
+  competenciaBr?: string;
   valor: number;
   vencimento: string;
+  vencimentoBr?: string;
   status: string;
   pixCopiaCola?: string;
   pixQrBase64?: string;
   pagoEm?: string | null;
+  pagoEmBr?: string | null;
 };
 
 export type AnuncioAssinaturaResumo = {
@@ -297,11 +300,15 @@ export type AnuncioAssinaturaResumo = {
     id: number;
     status: string;
     proximoVencimento?: string | null;
+    proximoVencimentoBr?: string | null;
+    inicioEmBr?: string | null;
     plano?: AnuncioPlano | null;
   } | null;
   faturaAberta?: AnuncioFatura | null;
   limiteAnuncios?: number;
   usados?: number;
+  usadosTotal?: number;
+  limiteExcedido?: boolean;
   podeCriar?: boolean;
   mpConfigurado?: boolean;
 };
@@ -607,7 +614,7 @@ export const api = {
       body: JSON.stringify({}),
     }),
   verificarAnuncioAssinatura: (faturaId: number) =>
-    authRequest<{ ok?: boolean; pago?: boolean; message?: string }>(
+    authRequest<{ ok?: boolean; pago?: boolean; message?: string; resumo?: AnuncioAssinaturaResumo }>(
       '/conect-empresa/anuncios/assinatura/verificar',
       { method: 'POST', body: JSON.stringify({ faturaId }) },
     ),
