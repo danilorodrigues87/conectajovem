@@ -17,6 +17,7 @@ import {
 } from '../lib/api';
 import { newExperiencia, newFormacaoAcademica, TIPO_FORMACAO_LABEL } from '../lib/curriculo';
 import { formatConclusaoEm } from '../lib/date';
+import { IDADE_MENOR, maxDateNascimento, validarNascimento } from '../lib/idade';
 import { EMPTY_REDES, normalizeRedes } from '../lib/social';
 import { site } from '../config/site';
 
@@ -68,6 +69,9 @@ export function CandidatoDashboardPage() {
     nome: '',
     whatsapp: '',
     resumo: '',
+    nascimento: '',
+    responsavelNome: '',
+    responsavelConsentimento: false,
     logradouro: '',
     numero: '',
     estadoId: '',
@@ -96,6 +100,9 @@ export function CandidatoDashboardPage() {
         nome: r.candidato.nome || '',
         whatsapp: r.candidato.whatsapp || '',
         resumo: r.candidato.resumo || '',
+        nascimento: r.candidato.nascimento ? String(r.candidato.nascimento).slice(0, 10) : '',
+        responsavelNome: r.candidato.responsavelNome || '',
+        responsavelConsentimento: !!r.candidato.responsavelConsentimento,
         logradouro: r.candidato.logradouro || '',
         numero: r.candidato.numero || '',
         estadoId: r.candidato.estadoId ? String(r.candidato.estadoId) : '',
@@ -155,6 +162,28 @@ export function CandidatoDashboardPage() {
       showToast(msg, 'error');
       return;
     }
+    const valNasc = validarNascimento(form.nascimento);
+    if (!valNasc.ok) {
+      const msg = valNasc.erro || 'Data de nascimento inválida.';
+      setError(msg);
+      showToast(msg, 'error');
+      return;
+    }
+    const exigeResp = typeof valNasc.idade === 'number' && valNasc.idade < IDADE_MENOR;
+    if (exigeResp) {
+      if (form.responsavelNome.trim().length < 3) {
+        const msg = 'Informe o nome completo do responsável legal.';
+        setError(msg);
+        showToast(msg, 'error');
+        return;
+      }
+      if (!form.responsavelConsentimento) {
+        const msg = 'Confirme o consentimento do responsável legal.';
+        setError(msg);
+        showToast(msg, 'error');
+        return;
+      }
+    }
     setSaving(true);
     setError('');
     setSqlAviso('');
@@ -163,6 +192,9 @@ export function CandidatoDashboardPage() {
         nome: form.nome,
         whatsapp: form.whatsapp,
         resumo: form.resumo,
+        nascimento: form.nascimento,
+        responsavelNome: exigeResp ? form.responsavelNome : '',
+        responsavelConsentimento: exigeResp ? true : false,
         logradouro: form.logradouro,
         numero: form.numero,
         cidadeId: form.cidadeId ? Number(form.cidadeId) : null,
@@ -420,6 +452,42 @@ export function CandidatoDashboardPage() {
               onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
               required
             />
+            <div>
+              <label className="mb-1 block text-sm font-medium">Data de nascimento *</label>
+              <input
+                className="input"
+                type="date"
+                max={maxDateNascimento()}
+                value={form.nascimento}
+                onChange={(e) => setForm((f) => ({ ...f, nascimento: e.target.value }))}
+                required
+              />
+              <p className="mt-1 text-xs text-faint">
+                Sua idade aparece para empresas parceiras. Participação a partir de 12 anos.
+              </p>
+            </div>
+            {form.nascimento && validarNascimento(form.nascimento).idade != null
+              && (validarNascimento(form.nascimento).idade as number) < IDADE_MENOR && (
+              <div className="space-y-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
+                <input
+                  className="input"
+                  placeholder="Nome completo do responsável legal *"
+                  value={form.responsavelNome}
+                  onChange={(e) => setForm((f) => ({ ...f, responsavelNome: e.target.value }))}
+                  required
+                />
+                <label className="flex items-start gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="mt-1"
+                    checked={form.responsavelConsentimento}
+                    onChange={(e) => setForm((f) => ({ ...f, responsavelConsentimento: e.target.checked }))}
+                    required
+                  />
+                  <span>Declaro ser o responsável legal ou possuir autorização para este cadastro.</span>
+                </label>
+              </div>
+            )}
             <input
               className="input"
               placeholder="WhatsApp"

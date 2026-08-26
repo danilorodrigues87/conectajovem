@@ -86,6 +86,8 @@ export type CandidaturaEmpresa = Candidatura & {
   candidatoResumo?: string;
   candidatoDisponibilidade?: string;
   candidatoTipo?: string;
+  candidatoIdade?: number | null;
+  candidatoIsMenor?: boolean;
   mensagemEmpresa?: string;
 };
 
@@ -122,6 +124,12 @@ export type CandidatoPerfil = {
   email: string;
   whatsapp: string;
   resumo: string;
+  idade?: number | null;
+  isMenor?: boolean;
+  temNascimento?: boolean;
+  nascimento?: string | null;
+  responsavelNome?: string | null;
+  responsavelConsentimento?: boolean;
   cidadeId?: number | null;
   cidadeNome?: string;
   estadoId?: number | null;

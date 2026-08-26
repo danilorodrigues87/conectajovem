@@ -4,7 +4,7 @@ import { site } from '../../config/site';
 export const termosMeta = {
   badge: 'Institucional',
   title: 'Termos de Uso',
-  updatedAt: '21 de agosto de 2026',
+  updatedAt: '26 de agosto de 2026',
   intro:
     'Estes Termos regulam o acesso e uso do Conecta Jovem. Ao utilizar o site ou criar uma conta, você declara ter lido, compreendido e concordado com as condições abaixo.',
 };
@@ -31,6 +31,8 @@ export const termosSections: LegalSection[] = [
     title: '3. Elegibilidade e cadastro',
     paragraphs: [
       'Para utilizar recursos que exijam conta, você deve fornecer informações verdadeiras, completas e atualizadas.',
+      'Candidatos devem ter no mínimo 12 (doze) anos completos para participar da plataforma.',
+      'Candidatos menores de 18 anos devem contar com consentimento e dados do responsável legal conforme solicitado no cadastro.',
       'Você é responsável pela confidencialidade de sua senha e por todas as atividades realizadas em sua conta.',
       'Empresas devem possuir legitimidade para representar a organização cadastrada e informar CNPJ válido quando exigido.',
     ],
@@ -43,7 +45,8 @@ export const termosSections: LegalSection[] = [
       'Manter currículo e dados profissionais coerentes com a realidade.',
       'Utilizar a plataforma apenas para fins legítimos de busca de oportunidades.',
       'Não publicar conteúdo ofensivo, discriminatório, falso ou que viole direitos de terceiros.',
-      'Compreender que empresas parceiras visualizam informações do perfil conforme fluxo de candidatura ou busca de talentos.',
+      'Compreender que empresas parceiras visualizam informações do perfil conforme fluxo de candidatura ou busca de talentos, incluindo a idade em anos.',
+      'Menores de 18 anos só devem usar a plataforma com ciência e autorização do responsável legal.',
     ],
   },
   {
@@ -51,8 +54,8 @@ export const termosSections: LegalSection[] = [
     title: '5. Regras para empresas parceiras',
     paragraphs: ['Empresas cadastradas concordam em:'],
     list: [
-      'Publicar vagas reais e compatíveis com a legislação trabalhista aplicável.',
-      'Tratar dados de candidatos exclusivamente para fins de recrutamento e seleção.',
+      'Publicar vagas reais e compatíveis com a legislação trabalhista aplicável, inclusive quanto à contratação de menores.',
+      'Tratar dados de candidatos exclusivamente para fins de recrutamento e seleção, sem contato inadequado a menores de idade.',
       'Aguardar aprovação cadastral quando aplicável, antes de utilizar recursos restritos.',
       'Não utilizar a plataforma para spam, cobranças indevidas ou práticas abusivas.',
     ],

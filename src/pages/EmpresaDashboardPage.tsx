@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AddressFields } from '../components/AddressFields';
+import { CandidatoIdadeBadge } from '../components/CandidatoIdadeBadge';
 import { CurriculoView } from '../components/CurriculoView';
 import { Layout } from '../components/Layout';
 import { LocationSelect } from '../components/LocationSelect';
@@ -638,6 +639,11 @@ export function EmpresaDashboardPage() {
                         <div>
                           <h3 className="text-lg font-semibold">
                             {detalheCand.candidato?.nome || detalheCand.candidatura.candidatoNome}
+                            <CandidatoIdadeBadge
+                              idade={detalheCand.candidato?.idade ?? detalheCand.candidatura.candidatoIdade}
+                              isMenorFlag={detalheCand.candidato?.isMenor ?? detalheCand.candidatura.candidatoIsMenor}
+                              className="ml-1 text-base font-normal"
+                            />
                           </h3>
                           <p className="text-sm text-subtle">
                             Vaga: {detalheCand.candidatura.vagaTitulo} ·{' '}
@@ -712,7 +718,14 @@ export function EmpresaDashboardPage() {
                       >
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div>
-                            <div className="font-semibold">{c.candidatoNome}</div>
+                            <div className="font-semibold">
+                              {c.candidatoNome}
+                              <CandidatoIdadeBadge
+                                idade={c.candidatoIdade}
+                                isMenorFlag={c.candidatoIsMenor}
+                                className="ml-1 text-sm font-normal"
+                              />
+                            </div>
                             <div className="text-sm text-subtle">{c.vagaTitulo}</div>
                           </div>
                           <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs">
@@ -781,7 +794,14 @@ export function EmpresaDashboardPage() {
                           </div>
                         )}
                         <div>
-                          <h3 className="text-lg font-semibold">{detalheTalento.nome}</h3>
+                          <h3 className="text-lg font-semibold">
+                            {detalheTalento.nome}
+                            <CandidatoIdadeBadge
+                              idade={detalheTalento.idade}
+                              isMenorFlag={detalheTalento.isMenor}
+                              className="ml-1 text-base font-normal"
+                            />
+                          </h3>
                           <p className="text-sm text-subtle">
                             {[detalheTalento.email, detalheTalento.cidadeNome, detalheTalento.uf]
                               .filter(Boolean)
@@ -851,7 +871,10 @@ export function EmpresaDashboardPage() {
                             </div>
                           )}
                           <div className="min-w-0 flex-1">
-                            <div className="font-semibold">{c.nome}</div>
+                            <div className="font-semibold">
+                              {c.nome}
+                              <CandidatoIdadeBadge idade={c.idade} isMenorFlag={c.isMenor} className="ml-1 text-sm font-normal" />
+                            </div>
                             <p className="mt-1 text-sm text-subtle line-clamp-2">{c.resumo || 'Sem resumo'}</p>
                             {c.habilidades.length > 0 && (
                               <div className="mt-2 flex flex-wrap gap-1">

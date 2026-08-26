@@ -1,6 +1,7 @@
 import type { CandidatoPerfil } from '../lib/api';
 import { site } from '../config/site';
 import { SocialLinks } from './SocialLinks';
+import { formatarIdade } from '../lib/idade';
 import {
   DISPONIBILIDADE_LABEL,
   agruparFormacaoAcademica,
@@ -35,6 +36,9 @@ export function CurriculoDocument({ perfil }: Props) {
           <p className="curriculo-meta">
             {[perfil.email, perfil.whatsapp].filter(Boolean).join(' · ')}
           </p>
+          {perfil.idade != null && perfil.idade >= 0 && (
+            <p className="curriculo-meta">Idade: {formatarIdade(perfil.idade)}</p>
+          )}
           {perfil.endereco && <p className="curriculo-meta">{perfil.endereco}</p>}
           <p className="curriculo-meta">
             Disponibilidade: {DISPONIBILIDADE_LABEL[perfil.disponibilidade] || perfil.disponibilidade}

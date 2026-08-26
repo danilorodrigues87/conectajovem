@@ -4,7 +4,7 @@ import { site } from '../../config/site';
 export const privacidadeMeta = {
   badge: 'Institucional',
   title: 'Política de Privacidade',
-  updatedAt: '22 de agosto de 2026',
+  updatedAt: '26 de agosto de 2026',
   intro:
     'Esta Política descreve como o Conecta Jovem trata dados pessoais de candidatos, empresas parceiras e visitantes, em conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018).',
 };
@@ -23,7 +23,9 @@ export const privacidadeSections: LegalSection[] = [
     title: '2. Quais dados coletamos',
     paragraphs: ['Dependendo do seu perfil e do uso da plataforma, podemos tratar:'],
     list: [
-      'Dados de identificação e contato: nome, e-mail, telefone/WhatsApp, endereço, cidade e foto de perfil.',
+      'Dados de identificação e contato: nome, e-mail, telefone/WhatsApp, endereço, cidade, data de nascimento e foto de perfil.',
+      'Para candidatos menores de 18 anos: nome do responsável legal e registro de consentimento (data/hora), quando aplicável.',
+      'Idade em anos (calculada a partir da data de nascimento) pode ser exibida a empresas parceiras no currículo e na busca de talentos; a data de nascimento completa e os dados do responsável não são exibidos às empresas.',
       'Links de redes sociais opcionais informados voluntariamente em perfis de candidatos e empresas (LinkedIn, Instagram, GitHub, portfólio etc.).',
       'Dados profissionais: currículo simplificado, habilidades, formação acadêmica, experiências, disponibilidade e mensagens de candidatura.',
       'Dados de empresas: CNPJ, razão social, nome fantasia, logo, contatos comerciais e vagas publicadas.',
@@ -108,7 +110,10 @@ export const privacidadeSections: LegalSection[] = [
     id: 'menores',
     title: '10. Crianças e adolescentes',
     paragraphs: [
-      'A plataforma destina-se principalmente a jovens em busca de oportunidades profissionais. Quando aplicável, o tratamento de dados de menores observará as exigências legais e o melhor interesse do titular.',
+      'A plataforma destina-se principalmente a jovens a partir de 12 (doze) anos completos em busca de oportunidades profissionais.',
+      'Para menores de 18 anos, coletamos dados do responsável legal e registramos consentimento quando exigido pelo cadastro.',
+      'O tratamento observa a LGPD (Lei nº 13.709/2018), o Estatuto da Criança e do Adolescente e o melhor interesse do titular.',
+      'Responsáveis legais podem entrar em contato pelo e-mail indicado nesta Política para exercer direitos relativos a menores sob sua responsabilidade.',
     ],
   },
   {
