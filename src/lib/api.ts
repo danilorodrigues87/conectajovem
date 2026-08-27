@@ -423,6 +423,16 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     }),
+  recuperarSenhaCandidato: (email: string) =>
+    request<{ message?: string }>('/conect/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+  redefinirSenhaCandidato: (payload: { code: string; newPassword: string; confirmPassword: string }) =>
+    request<{ message?: string }>('/conect/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   registerCandidato: (payload: Record<string, unknown>) =>
     request<{ user: unknown; tokens: { accessToken: string } }>('/conect/auth/register', {
       method: 'POST',
@@ -432,6 +442,16 @@ export const api = {
     request<{ user: UserEmpresa; tokens: { accessToken: string } }>('/conect-empresa/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
+    }),
+  recuperarSenhaEmpresa: (email: string) =>
+    request<{ message?: string }>('/conect-empresa/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+  redefinirSenhaEmpresa: (payload: { code: string; newPassword: string; confirmPassword: string }) =>
+    request<{ message?: string }>('/conect-empresa/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     }),
   registerEmpresa: (payload: Record<string, unknown>) =>
     request<{ message?: string }>('/conect-empresa/auth/register', {

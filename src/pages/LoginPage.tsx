@@ -13,6 +13,7 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success] = useState(() => (location.state as { senhaOk?: string } | null)?.senhaOk || '');
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: FormEvent) {
@@ -63,6 +64,10 @@ export function LoginPage() {
         <form onSubmit={onSubmit} className="card mt-6 space-y-4">
           <input className="input" type="email" placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} required />
           <input className="input" type="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <p className="text-right text-sm">
+            <Link to="/esqueci-senha" className="text-brand-accent">Esqueci minha senha</Link>
+          </p>
+          {success && <p className="text-sm text-emerald-600 dark:text-emerald-400">{success}</p>}
           {error && <p className="text-sm text-red-500 dark:text-red-400">{error}</p>}
           <button className="btn-primary w-full" disabled={loading}>
             {loading ? 'Entrando…' : 'Entrar'}

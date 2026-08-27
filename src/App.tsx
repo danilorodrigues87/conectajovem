@@ -5,6 +5,8 @@ import { VagasPage } from './pages/VagasPage';
 import { VagaDetalhePage } from './pages/VagaDetalhePage';
 import { EmpresasPage } from './pages/EmpresasPage';
 import { LoginPage } from './pages/LoginPage';
+import { EsqueciSenhaPage } from './pages/EsqueciSenhaPage';
+import { CodigoSegurancaPage } from './pages/CodigoSegurancaPage';
 import { CadastroCandidatoPage } from './pages/CadastroCandidatoPage';
 import { CadastroEmpresaPage } from './pages/CadastroEmpresaPage';
 import { ComoFuncionaPage } from './pages/ComoFuncionaPage';
@@ -40,6 +42,8 @@ export default function App() {
         <Route path="/privacidade" element={<PrivacidadePage />} />
         <Route path="/termos" element={<TermosPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/esqueci-senha" element={<EsqueciSenhaPage />} />
+        <Route path="/codigo-seguranca" element={<CodigoSegurancaPage />} />
         <Route path="/cadastro" element={<CadastroCandidatoPage />} />
         <Route path="/cadastro/empresa" element={<CadastroEmpresaPage />} />
         <Route path="/candidato" element={<Private role="candidato"><CandidatoDashboardPage /></Private>} />
