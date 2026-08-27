@@ -912,6 +912,7 @@ export function EmpresaDashboardPage() {
             )}
 
             {tab === 'perfil' && empresa && (
+              <>
               <form onSubmit={onSubmitPerfil} className="glass-card mt-8 max-w-xl space-y-4">
                 <h2 className="text-lg font-semibold">Dados da empresa</h2>
                 <p className="text-xs text-faint">CNPJ: {empresa.cnpj} · Razão social: {empresa.razaoSocial}</p>
@@ -1011,6 +1012,7 @@ export function EmpresaDashboardPage() {
                   return res;
                 }}
               />
+              </>
             )}
           </>
         )}
