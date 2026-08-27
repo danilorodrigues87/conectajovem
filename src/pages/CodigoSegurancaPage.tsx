@@ -56,7 +56,11 @@ export function CodigoSegurancaPage() {
           Informe o código recebido no e-mail e escolha uma nova senha
           {tipo === 'empresa' ? ' da empresa parceira' : ''}.
         </p>
-        {info && <p className="mt-4 text-sm text-emerald-600 dark:text-emerald-400">{info}</p>}
+        {info && (
+          <p className="mt-4 text-sm text-emerald-600 dark:text-emerald-400">
+            {info} Verifique também a pasta de spam.
+          </p>
+        )}
         <form onSubmit={onSubmit} className="card mt-6 space-y-4">
           <div>
             <label className="text-sm font-medium">Código de 6 dígitos</label>

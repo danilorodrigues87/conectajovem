@@ -31,6 +31,7 @@ export function EsqueciSenhaPage() {
         <h1 className="text-2xl font-bold">Recuperar senha</h1>
         <p className="mt-3 text-sm text-subtle">
           Informe o e-mail da sua conta. Enviaremos um código de 6 dígitos para redefinir a senha.
+          Use a mesma aba do login (Candidato ou Empresa).
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <button
