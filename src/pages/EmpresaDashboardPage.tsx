@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AddressFields } from '../components/AddressFields';
+import { AlterarSenhaForm } from '../components/AlterarSenhaForm';
 import { CandidatoIdadeBadge } from '../components/CandidatoIdadeBadge';
 import { CurriculoView } from '../components/CurriculoView';
 import { Layout } from '../components/Layout';
@@ -1003,6 +1004,13 @@ export function EmpresaDashboardPage() {
                   {saving ? 'Salvando…' : 'Salvar perfil'}
                 </button>
               </form>
+              <AlterarSenhaForm
+                onSubmit={async (payload) => {
+                  const res = await api.alterarSenhaEmpresa(payload);
+                  flash(res.message || 'Senha alterada.');
+                  return res;
+                }}
+              />
             )}
           </>
         )}

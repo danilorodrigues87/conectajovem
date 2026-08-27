@@ -445,6 +445,11 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify(payload),
     }),
+  alterarSenhaEmpresa: (payload: { currentPassword: string; newPassword: string; confirmPassword: string }) =>
+    authRequest<{ message?: string }>('/conect-empresa/me/password', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   uploadLogoEmpresa: (file?: File, restaurar?: boolean) => {
     const fd = new FormData();
     if (file) fd.append('logo', file);
@@ -456,6 +461,11 @@ export const api = {
   atualizarPerfilCandidato: (payload: Record<string, unknown>) =>
     authRequest<{ message?: string; sqlAviso?: string; candidato: CandidatoPerfil }>('/conect/me', {
       method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
+  alterarSenhaCandidato: (payload: { currentPassword: string; newPassword: string; confirmPassword: string }) =>
+    authRequest<{ message?: string }>('/conect/me/password', {
+      method: 'POST',
       body: JSON.stringify(payload),
     }),
   uploadFotoCandidato: (file?: File, opts?: { usarPortal?: boolean; restaurar?: boolean }) => {

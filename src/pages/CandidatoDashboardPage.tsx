@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AddressFields } from '../components/AddressFields';
+import { AlterarSenhaForm } from '../components/AlterarSenhaForm';
 import { CurriculoPreview } from '../components/CurriculoPreview';
 import { Layout } from '../components/Layout';
 import { SocialLinksForm } from '../components/SocialLinksForm';
@@ -772,6 +773,7 @@ export function CandidatoDashboardPage() {
               {saving ? 'Salvando…' : 'Salvar perfil'}
             </button>
           </form>
+          <AlterarSenhaForm onSubmit={(payload) => api.alterarSenhaCandidato(payload)} />
           </>
         )}
 
